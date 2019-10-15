@@ -25,9 +25,8 @@ if __name__ == '__main__':
 
     # docs: インタビュー全体
     print('Load data')
-    path = './data/interview-text_01-26_all.txt'
     # モデルを訓練する
-    data = utils.to_sentence(utils.load_data(path))
+    data = utils.to_sentence(scraping.scraping(10))
     docs = [row[1] for row in data]
 
     # max_characters: XX文字以上の単文は要約対象外
@@ -41,6 +40,7 @@ if __name__ == '__main__':
     ...
     ]
     """
+    print(data[:3])
     print(docs[:1])
     print(docs_for_train[:1])
     print('Done')

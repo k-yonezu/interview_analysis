@@ -9,7 +9,7 @@ def get_docs_num(num):
     docs_num = []
     for i in range(num):
         param = i + 1
-        link = "https://pando.life/qwintet/articles?pageId=" + str(param)
+        link = "" + str(param)
         print(link)
         with request.urlopen(link) as response:
             html = response.read().decode("utf-8")
@@ -22,7 +22,7 @@ def get_docs_num(num):
 
 
 def get_doc(doc_num):
-    link = "https://pando.life/qwintet/article/"
+    link = ""
     with request.urlopen(link + parser.quote_plus(str(doc_num))) as response:
         # BMP外を''に置換するマップ
         non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), '\n')
@@ -34,11 +34,15 @@ def get_doc(doc_num):
         title = str(doc_num) + ', ' + h1.text.translate(non_bmp_map).strip()
 
         # 本文抜き出し
+        if not(soup.find_all(class_='article_parent')):
+            return False, False
+
         body = soup.find_all(class_='article_parent')
         doc = body[0].text.translate(non_bmp_map)
         doc = re.sub("!", "\n", doc)
         doc = re.sub("！", "\n", doc)
         doc = re.sub("\?", "\n", doc)
+        doc = re.sub("\u2003", " ", doc)
         # doc = re.sub(r'[︰-＠]', " ", doc)  # 全角記号
         # doc = re.sub(r'[-/:-@\[-`\{-~]', " ", doc)  # 半角記号
         doc = doc.replace("、", " ")
@@ -55,6 +59,9 @@ def scraping(num):
     for doc_num in docs_num:
         print(doc_num)
         title, doc = get_doc(doc_num)
+        if not(title):
+            print("skip")
+            continue
         docs.append((title, doc))
 
     return docs
