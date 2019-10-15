@@ -39,8 +39,9 @@ if __name__ == '__main__':
     # docs: インタビュー全体
     print('Load data')
     # path = './data/test.txt'
-    path = './data/interview-text_01-26_all.txt'
-    data = utils.load_data(path)
+    doc_num = 179
+    data = [(scraping.get_doc(doc_num))]
+
     print('Done')
 
     # 要約する単位 文 or 発言
@@ -60,8 +61,9 @@ if __name__ == '__main__':
 
     elif model_type == 'doc2vec':
         # ===Doc2Vec===
-        doc2vec = Doc2Vec(alpha=0.025, min_count=10, vector_size=200, epochs=50, workers=4)
-        doc2vec.load_model('./model/doc2vec/doc2vec_' + str(doc2vec.vector_size) + '.model')
+        doc2vec = Doc2Vec(alpha=0.025, min_count=10, vector_size=300, epochs=50, workers=4)
+        model_path = './model/doc2vec/doc2vec_' + str(doc2vec.vector_size) + '.model'
+        doc2vec.load_model(model_path)
         sent_vecs = doc2vec.to_vector(([stems(doc) for doc in docs]))
 
     else:
@@ -71,12 +73,12 @@ if __name__ == '__main__':
     # 表示
     print('===要約===')
     # 要約
-    docs_summary = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=50, threshold=threshold)
+    docs_summary = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=5, threshold=threshold)
 
-    with open('./result/summary/' + model_type + '/' + sum_type + '_' + sort_type + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
+    with open('./result/summary/' + model_type + '/doc_num_' + str(doc_num) + '_' + sum_type + '_' + sort_type + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
         if model_type == 'tfidf':
             print("no_below: " + str(tfidf.no_below) + ", no_above: " + str(tfidf.no_above) + ", keep_n: " + str(tfidf.keep_n) + ", threshold: " + str(threshold), file=f)
         if model_type == 'doc2vec':
-            print("doc2vec model: " + path + ", threshold: " + str(threshold), file=f)
+            print("doc2vec model: " + model_path + ", threshold: " + str(threshold), file=f)
         for i, docs in enumerate(docs_summary):
             print(str(i) + ': ' + docs.strip(), file=f)

@@ -72,7 +72,7 @@ def to_sentence(data):
         tmp = []
         sent_arr = doc.split('\n')
         sent_arr.pop()
-        tmp = [(label, sent) for sent in sent_arr if sent != '']
+        tmp = [(label, sent) for sent in sent_arr if sent.strip() != '']
         res.extend(tmp)
 
     return res
