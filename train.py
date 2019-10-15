@@ -26,7 +26,8 @@ if __name__ == '__main__':
     # docs: インタビュー全体
     print('Load data')
     # モデルを訓練する
-    data = utils.to_sentence(scraping.scraping(10))
+    path = './data/interview-text_01-26_all.txt'
+    data = utils.to_sentence(utils.load_data(path))
     docs = [row[1] for row in data]
 
     # max_characters: XX文字以上の単文は要約対象外
