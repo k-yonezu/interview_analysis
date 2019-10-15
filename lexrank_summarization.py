@@ -39,9 +39,9 @@ if __name__ == '__main__':
     # docs: インタビュー全体
     print('Load data')
     # path = './data/test.txt'
-    doc_num = 179
-    data = [(scraping.get_doc(doc_num))]
-
+    doc_num = 01
+    path = './data/interview-text_01-26_' + str(doc_num) + '.txt'
+    data = utils.load_data(path)
     print('Done')
 
     # 要約する単位 文 or 発言
