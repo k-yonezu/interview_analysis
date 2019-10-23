@@ -36,6 +36,45 @@ def stems(text):
     return stems
 
 
+def load_data_for_eval(path, sentence=False):
+    data = {}
+    with open(path) as f:
+        lines = f.readlines()
+        i = 0
+        for line in lines:
+            # 実際の会話だけ抽出
+            line_arr = line.split('　')
+            doc = ''.join(line_arr[1:]).strip()
+            doc = doc.replace('。','\n')
+            doc = doc.replace('、',' ')
+            if doc == '' and '_____' not in line_arr[0]:
+                continue
+
+
+            # 分単位
+            # docs_arr = doc.split('\n')
+            # docs_arr.pop()
+            # data.extend(docs_arr)
+            # 話者単位
+            if '_____' in line_arr[0] and i != 0:
+                i -= 0.5
+                data[i] = (line_arr[0], doc)
+                i -= 0.5
+            else:
+                if sentence:
+                    sent_arr = doc.split('\n')
+                    for sent in sent_arr:
+                        if sent.strip() != '':
+                            data[i] = (line_arr[0], sent)
+                            i += 1
+                    continue
+                else:
+                    data[i] = (line_arr[0], doc)
+            i += 1
+
+    return data
+
+
 def load_data(path):
     data = []
     with open(path) as f:

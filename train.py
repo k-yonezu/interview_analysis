@@ -51,7 +51,7 @@ if __name__ == '__main__':
         # GensimのTFIDFモデルを用いた文のベクトル化
         print('===TFIDFモデル生成===')
         print('Train tfidf model')
-        tfidf = TfidfModel(no_below=10, no_above=0.1, keep_n=100000)
+        tfidf = TfidfModel(no_below=2, no_above=0.1, keep_n=100000)
         tfidf.train(docs_for_train)
         print('Done')
 
