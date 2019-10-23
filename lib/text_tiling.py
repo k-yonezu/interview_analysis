@@ -2,6 +2,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 import copy
 
+
 class TextTiling(object):
     def __init__(self, *, window_size=2, p_limit=0.1, a=0.5, model=False):
         self.window_size = window_size
