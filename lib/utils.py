@@ -47,6 +47,15 @@ def load_data_for_eval(path, sentence=False):
             doc = ''.join(line_arr[1:]).strip()
             doc = doc.replace('。','\n')
             doc = doc.replace('、',' ')
+            doc = doc.replace('。','\n')
+            doc = doc.replace('＃＃＃＃','')
+            doc = doc.replace('＊＊＊＊','')
+            doc = doc.replace('＊','')
+            doc = doc.replace('(',' ')
+            doc = doc.replace(')',' ')
+            doc = doc.replace('?',' ')
+            doc = doc.replace('!',' ')
+            doc = doc.replace('＠',' ')
             if doc == '' and '_____' not in line_arr[0]:
                 continue
 
@@ -84,7 +93,15 @@ def load_data(path):
             line_arr = line.split('　')
             doc = ''.join(line_arr[1:]).strip()
             doc = doc.replace('。','\n')
+            doc = doc.replace('＃＃＃＃','')
+            doc = doc.replace('＊＊＊＊','')
+            doc = doc.replace('＊','')
+            doc = doc.replace('(',' ')
+            doc = doc.replace(')',' ')
             doc = doc.replace('、',' ')
+            doc = doc.replace('?',' ')
+            doc = doc.replace('!',' ')
+            doc = doc.replace('＠','')
             if doc == '':
                 continue
 
