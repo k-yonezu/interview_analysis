@@ -1,8 +1,9 @@
 import MeCab
 from gensim import models
+import re
 
 
-def _split_to_words(text, to_stem=False):
+def _split_to_words(text, *, to_stem=False, polish=False):
     """
     入力: 'すべて自分のほうへ'
     出力: tuple(['すべて', '自分', 'の', 'ほう', 'へ'])
@@ -17,6 +18,14 @@ def _split_to_words(text, to_stem=False):
             break
             # info => 'な\t助詞,終助詞,*,*,*,*,な,ナ,ナ'
         info_elems = info.split(',')
+
+        if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
+            continue
+
+        if polish:
+            if info_elems[1] == u"非自立" or info_elems[1] == u"代名詞" or info_elems[1] == u"接尾":
+                continue
+
         # 6番目に、無活用系の単語が入る。もし6番目が'*'だったら0番目を入れる
         if info_elems[6] == '*':
             # info_elems[0] => 'ヴァンロッサム\t名詞'
@@ -31,8 +40,28 @@ def _split_to_words(text, to_stem=False):
     return words
 
 
-def stems(text):
-    stems = _split_to_words(text=text, to_stem=True)
+def stems(text, *, polish=False):
+    text = text.replace('＃＃＃＃','')
+    text = text.replace('＊＊＊＊','')
+    text = text.replace('＊','')
+    text = text.replace('(',' ')
+    text = text.replace(')',' ')
+    text = text.replace('、',' ')
+    text = text.replace('～',' ')
+    text = text.replace('?',' ')
+    text = text.replace('!',' ')
+    text = text.replace('！',' ')
+    text = text.replace('？',' ')
+    text = text.replace('＠','')
+    if polish:
+        text = re.sub(r'[0-9]+', '', text)
+        # text = text.replace(':','')
+        # text = text.replace('こと',' ')
+        # text = text.replace('さん',' ')
+        # text = text.replace('ここ',' ')
+        # text = text.replace('私',' ')
+
+    stems = _split_to_words(text=text, to_stem=True, polish=polish)
     return stems
 
 
@@ -46,16 +75,7 @@ def load_data_for_eval(path, sentence=False):
             line_arr = line.split('　')
             doc = ''.join(line_arr[1:]).strip()
             doc = doc.replace('。','\n')
-            doc = doc.replace('、',' ')
-            doc = doc.replace('。','\n')
-            doc = doc.replace('＃＃＃＃','')
-            doc = doc.replace('＊＊＊＊','')
-            doc = doc.replace('＊','')
-            doc = doc.replace('(',' ')
-            doc = doc.replace(')',' ')
-            doc = doc.replace('?',' ')
-            doc = doc.replace('!',' ')
-            doc = doc.replace('＠',' ')
+
             if doc == '' and '_____' not in line_arr[0]:
                 continue
 
@@ -92,16 +112,8 @@ def load_data(path):
             # 実際の会話だけ抽出
             line_arr = line.split('　')
             doc = ''.join(line_arr[1:]).strip()
+
             doc = doc.replace('。','\n')
-            doc = doc.replace('＃＃＃＃','')
-            doc = doc.replace('＊＊＊＊','')
-            doc = doc.replace('＊','')
-            doc = doc.replace('(',' ')
-            doc = doc.replace(')',' ')
-            doc = doc.replace('、',' ')
-            doc = doc.replace('?',' ')
-            doc = doc.replace('!',' ')
-            doc = doc.replace('＠','')
             if doc == '':
                 continue
 
@@ -118,7 +130,7 @@ def load_data(path):
 def polish_docs(docs, max_characters=0):
     data = list(filter(lambda s: len(s) < max_characters, docs)) if max_characters else docs
 
-    return data
+    return docs
 
 
 def to_sentence(data):

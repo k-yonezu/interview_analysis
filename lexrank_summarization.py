@@ -31,7 +31,7 @@ def validate_args(args):
 
 def load_data_for_segmentation(doc_num):
     print('Interview:',  doc_num)
-    path = './data/segmentation_interview-text_' + doc_num + '.txt'
+    path = './data/segmentation/segmentation_interview-text_' + doc_num + '.txt'
 
     return utils.load_data_for_eval(path)
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
 
     # docs: インタビュー全体
     print('Load data')
-    doc_num = '02'
-    path = './data/interview-text_01-26_' + doc_num + '.txt'
+    doc_num = 'all'
+    path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
     # path = './data/interview_tfidf_doc_all_window_size_10_2019-10-23.txt'
 
     # 要約する単位 文 or 発言
@@ -59,11 +59,15 @@ if __name__ == '__main__':
         data = utils.load_data(path)
         docs = [row[1] for row in data]
     if sum_type == 'segmentation':
+        if doc_num == 'all':
+            doc_num = '26'
         data_arr = []
         for num in range(int(doc_num)):
             num += 1
             if num < 10:
                 num = '0' + str(num)
+            else:
+                num = str(num)
             data_arr.append(load_data_for_segmentation(num))
         docs = []
         for data in data_arr:

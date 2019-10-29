@@ -26,7 +26,7 @@ if __name__ == '__main__':
     # docs: インタビュー全体
     print('Load data')
     # モデルを訓練する
-    path = './data/interview-text_01-26_all.txt'
+    path = './data/interview/interview-text_01-26_all.txt'
     data = utils.to_sentence(utils.load_data(path))
     docs = [row[1] for row in data]
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         # GensimのTFIDFモデルを用いた文のベクトル化
         print('===TFIDFモデル生成===')
         print('Train tfidf model')
-        tfidf = TfidfModel(no_below=2, no_above=0.8, keep_n=100000)
+        tfidf = TfidfModel(no_below=5, no_above=0.5, keep_n=100000)
         tfidf.train(docs_for_train)
         print('Done')
 
