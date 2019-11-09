@@ -17,20 +17,6 @@ def load_data_for_segmentation(doc_num):
     return utils.load_data_for_eval(path)
 
 
-def write_topic_probs(prob_arr, topic_N):
-    with open('./result/sorted/lda/' + doc_type +'/' + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
-        for num in range(topic_N + 1):
-            probs = [e[0][1] for e in prob_arr if e[0][0] == 0]
-            probs = dict(enumerate(probs))
-            sorted_probs = sorted(probs.items(), key=lambda x:x[1], reverse=True)
-            print('Topic:', num, file=f)
-            i = 0
-            for e in [docs[e[0]] for e in sorted_probs[:5]]:
-                i += 1
-                print(str(i) + ':', file=f)
-                print(e, file=f)
-            print('', file=f)
-
 if __name__ == '__main__':
     args = sys.argv
     if 2 <= len(args):
@@ -89,17 +75,31 @@ if __name__ == '__main__':
     keep_n = 100000
     topic_N = 8
 
-    # Load dict
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/segmentation_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     sw = stopwords()
     corpus = list(map(dictionary.doc2bow, [stems(doc, polish=True, sw=sw) for doc in docs]))
     print(docs[-3:])
 
-    # Load lda
-    lda = gensim.models.ldamodel.LdaModel.load('./model/lda/docs/topic_' + str(topic_N) + '.model')
+    # LDAモデルの構築
+    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=topic_N, id2word=dictionary, random_state=0)
 
-    # Calc
-    prob_arr = [lda[e] for e in corpus]
-    # print(res)
-    print(prob_arr[:5])
-    write_topic_probs(prob_arr, topic_N)
+    # モデルのsave
+    lda.save('./model/lda/' + doc_type +'/' + 'topic_' + str(topic_N) + '.model')
+
+    with open('./result/clustering/lda/' + doc_type +'/' + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
+        for i in range(topic_N):
+            print("\n", file=f)
+            print("="*80, file=f)
+            print("TOPIC {0}\n".format(i), file=f)
+            topic = lda.show_topic(i, topn=30)
+            for t in topic:
+                print("{0:20s}{1}".format(t[0], t[1]), file=f)
+
+    # for topic in lda.show_topics(-1, num_words=20):
+    #     print(topic)
+    # # セグメント単位で入れた場合の処理
+    # target_record = 5 # 分析対象のドキュメントインデックス
+    # print(docs[5])
+
+    # for topics_per_document in lda[corpus[target_record]]:
+    #     print(topics_per_document[0], topics_per_document[1])

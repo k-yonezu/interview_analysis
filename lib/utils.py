@@ -1,9 +1,10 @@
 import MeCab
 from gensim import models
 import re
+import urllib
 
 
-def _split_to_words(text, *, to_stem=False, polish=False):
+def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
     """
     入力: 'すべて自分のほうへ'
     出力: tuple(['すべて', '自分', 'の', 'ほう', 'へ'])
@@ -19,11 +20,16 @@ def _split_to_words(text, *, to_stem=False, polish=False):
             # info => 'な\t助詞,終助詞,*,*,*,*,な,ナ,ナ'
         info_elems = info.split(',')
 
-        if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
-            continue
-
         if polish:
-            if info_elems[1] == u"非自立" or info_elems[1] == u"代名詞" or info_elems[1] == u"接尾":
+            if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞" and info_elems[0][-2:] != u"動詞":
+                continue
+            if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"数" or info_elems[1] == u"非自立":
+                continue
+            # if info_elems[0][-2:] != u"名詞" or info_elems[1] != u"一般":
+            # if info_elems[6] == u"ない":
+            #     print(info_elems)
+            #     continue
+            if info_elems[6] in sw:
                 continue
 
         # 6番目に、無活用系の単語が入る。もし6番目が'*'だったら0番目を入れる
@@ -40,7 +46,7 @@ def _split_to_words(text, *, to_stem=False, polish=False):
     return words
 
 
-def stems(text, *, polish=False):
+def stems(text, *, polish=False, sw=[]):
     text = text.replace('＃＃＃＃','')
     text = text.replace('＊＊＊＊','')
     text = text.replace('＊','')
@@ -53,16 +59,28 @@ def stems(text, *, polish=False):
     text = text.replace('！',' ')
     text = text.replace('？',' ')
     text = text.replace('＠','')
-    if polish:
-        text = re.sub(r'[0-9]+', '', text)
-        # text = text.replace(':','')
-        # text = text.replace('こと',' ')
-        # text = text.replace('さん',' ')
-        # text = text.replace('ここ',' ')
-        # text = text.replace('私',' ')
+    text = text.replace(':','')
+    text = text.replace('::','')
+    # if polish:
+    #     text = re.sub(r'[0-9]+', '', text)
 
-    stems = _split_to_words(text=text, to_stem=True, polish=polish)
+    stems = _split_to_words(text=text, to_stem=True, polish=polish, sw=sw)
     return stems
+
+
+def stopwords():
+    stopwords = []
+    slothlib_path = 'http://svn.sourceforge.jp/svnroot/slothlib/CSharp/Version1/SlothLib/NLP/Filter/StopWord/word/Japanese.txt'
+    slothlib_file = urllib.request.urlopen(url=slothlib_path)
+    slothlib_stopwords = [line.decode("utf-8").strip() for line in slothlib_file]
+    slothlib_stopwords = [ss for ss in slothlib_stopwords if not ss==u'']
+    # print(slothlib_stopwords)
+
+    # Merge and drop duplication
+    stopwords += slothlib_stopwords
+    stopwords = list(set(stopwords))
+
+    return stopwords
 
 
 def load_data_for_eval(path, sentence=False):

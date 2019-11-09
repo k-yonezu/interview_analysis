@@ -43,7 +43,7 @@ def validate_args(args):
 def load_model(model_type, segmentation_type):
     if model_type == 'tfidf':
         # TFIDFモデル
-        model = TfidfModel(no_below=5, no_above=0.5, keep_n=100000)
+        model = TfidfModel(no_below=1, no_above=1.0, keep_n=100000)
         model.load_model()
     elif model_type == 'doc2vec':
         model = Doc2Vec(alpha=0.025, min_count=10, vector_size=300, epochs=50, workers=4)
@@ -172,7 +172,7 @@ def main_segmentation(doc_num, window_size, model_type, doc_type, segmentation_t
 if __name__ == '__main__':
     # ハイパーパラメータ
     window_size = 30
-    doc_num = '06'
+    doc_num = '26'
 
     # 引数
     model_type, doc_type, segmentation_type, eval = validate_args(sys.argv)

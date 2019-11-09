@@ -1,4 +1,3 @@
-from lib import scraping
 from lib.tfidf import TfidfModel
 from lib.doc2vec import Doc2Vec
 from lib.word2vec import Word2Vec
@@ -51,7 +50,7 @@ if __name__ == '__main__':
         # GensimのTFIDFモデルを用いた文のベクトル化
         print('===TFIDFモデル生成===')
         print('Train tfidf model')
-        tfidf = TfidfModel(no_below=5, no_above=0.5, keep_n=100000)
+        tfidf = TfidfModel(no_below=1, no_above=1.0, keep_n=100000)
         tfidf.train(docs_for_train)
         print('Done')
 
