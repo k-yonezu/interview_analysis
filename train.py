@@ -1,4 +1,3 @@
-from lib import scraping
 from lib.tfidf import TfidfModel
 from lib.doc2vec import Doc2Vec
 from lib.word2vec import Word2Vec
@@ -26,7 +25,7 @@ if __name__ == '__main__':
     # docs: インタビュー全体
     print('Load data')
     # モデルを訓練する
-    path = './data/interview-text_01-26_all.txt'
+    path = './data/interview/interview-text_01-26_all.txt'
     data = utils.to_sentence(utils.load_data(path))
     docs = [row[1] for row in data]
 
@@ -41,9 +40,9 @@ if __name__ == '__main__':
     ...
     ]
     """
-    print(data[:3])
-    print(docs[:1])
-    print(docs_for_train[:1])
+    print(data[:5])
+    print(docs[:5])
+    print(docs_for_train[:5])
     print('Done')
 
     if model_type == 'tfidf':
@@ -51,7 +50,7 @@ if __name__ == '__main__':
         # GensimのTFIDFモデルを用いた文のベクトル化
         print('===TFIDFモデル生成===')
         print('Train tfidf model')
-        tfidf = TfidfModel(no_below=2, no_above=0.1, keep_n=100000)
+        tfidf = TfidfModel(no_below=5, no_above=0.5, keep_n=100000)
         tfidf.train(docs_for_train)
         print('Done')
 

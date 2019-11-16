@@ -68,12 +68,14 @@ class LexicalCohesionSegmentation(object):
         chain_word = []
         vec_left = np.zeros(len(self.model.dictionary), dtype="float32")
         vec_right = np.zeros(len(self.model.dictionary), dtype="float32")
+        # left window vector
         for word in left:
             if word in self.chain_arr:
                 for e in self.chain_arr[word]:
                     if index >= e['chain'][0] and index <= e['chain'][-1]:
                         vec_left[self.model.dictionary.token2id[word]] = e['score']
 
+        # right window vector
         for word in right:
             if word in self.chain_arr:
                 for e in self.chain_arr[word]:
@@ -82,13 +84,13 @@ class LexicalCohesionSegmentation(object):
 
         return cosine_similarity([vec_right], [vec_left])[0][0]
 
-
     def generate_chain_arr(self, docs):
         for word in self.model.dictionary.token2id.keys():
             chain = []
             tmp_chain = []
             for i in range(len(docs)):
                 if word in docs[i]:
+                    # 間隔が大きければ別の連鎖としてみなす
                     if len(tmp_chain) > 0 and i - tmp_chain[-1] > self.hiatus:
                         if len(tmp_chain) > 1:
                             # Calc socre
@@ -106,6 +108,7 @@ class LexicalCohesionSegmentation(object):
 
     def calc_chain_score(self, docs, chain, word):
         doc = copy.deepcopy(docs[chain[0]])
+        # docは連鎖
         for arr in docs[chain[0] + 1:chain[-1] + 1]:
             doc.extend(arr)
         freq = len([w for w in doc if w == word]) / len(doc)

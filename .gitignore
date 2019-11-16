@@ -2,5 +2,6 @@ data/*
 result/*
 model/*
 .DS_Store/
+.DS_Store
 lib/__pycache__
 !.gitkeep

@@ -15,7 +15,7 @@ def validate_args(args):
             print('Argument is invalid')
             exit()
 
-        if not(args[2] == 'sentence' or args[2] == 'docs'):
+        if not(args[2] == 'sentence' or args[2] == 'utterance' or args[2] == 'segmentation'):
             print('Argument is invalid')
             exit()
 
@@ -29,6 +29,13 @@ def validate_args(args):
     return args[1], args[2], args[3]
 
 
+def load_data_for_segmentation(doc_num):
+    print('Interview:',  doc_num)
+    path = './data/segmentation/segmentation_interview-text_' + doc_num + '.txt'
+
+    return utils.load_data_for_eval(path)
+
+
 if __name__ == '__main__':
 
     model_type, sum_type, sort_type = validate_args(sys.argv)
@@ -38,20 +45,47 @@ if __name__ == '__main__':
 
     # docs: インタビュー全体
     print('Load data')
-    # path = './data/test.txt'
-    doc_num = 01
-    path = './data/interview-text_01-26_' + str(doc_num) + '.txt'
-    data = utils.load_data(path)
-    print('Done')
+    doc_num = 'all'
+    path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
+    # path = './data/interview_tfidf_doc_all_window_size_10_2019-10-23.txt'
 
     # 要約する単位 文 or 発言
-    # to sentence
     if sum_type == 'sentence':
+        data = utils.load_data(path)
+        # to sentence
         data = utils.to_sentence(data)
+        docs = [row[1] for row in data]
+    if sum_type == 'utterance':
+        data = utils.load_data(path)
+        docs = [row[1] for row in data]
+    if sum_type == 'segmentation':
+        if doc_num == 'all':
+            doc_num = '26'
+        data_arr = []
+        for num in range(int(doc_num)):
+            num += 1
+            if num < 10:
+                num = '0' + str(num)
+            else:
+                num = str(num)
+            data_arr.append(load_data_for_segmentation(num))
+        docs = []
+        for data in data_arr:
+            tmp_docs = []
+            for item in data.items():
+                if '_____' in item[1][0]:
+                    docs.append('\n'.join(tmp_docs))
+                    tmp_docs = []
+                else:
+                    tmp_docs.extend([item[1][1]])
+            docs.append('\n'.join(tmp_docs))
+
+        doc_num = '01_' + doc_num
+
+    print('Done')
 
     # for sum
-    docs = [row[1] for row in data]
-    print(docs[:1])
+    print(docs[:3])
 
     if model_type == 'tfidf':
         # GensimのTFIDFモデルを用いた文のベクトル化
@@ -73,9 +107,9 @@ if __name__ == '__main__':
     # 表示
     print('===要約===')
     # 要約
-    docs_summary = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=5, threshold=threshold)
+    docs_summary = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=10, threshold=threshold)
 
-    with open('./result/summary/' + model_type + '/doc_num_' + str(doc_num) + '_' + sum_type + '_' + sort_type + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
+    with open('./result/summary/' + model_type + '/doc_num_' + doc_num + '_' + sum_type + '_' + sort_type + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
         if model_type == 'tfidf':
             print("no_below: " + str(tfidf.no_below) + ", no_above: " + str(tfidf.no_above) + ", keep_n: " + str(tfidf.keep_n) + ", threshold: " + str(threshold), file=f)
         if model_type == 'doc2vec':
