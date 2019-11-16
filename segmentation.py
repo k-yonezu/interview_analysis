@@ -23,7 +23,7 @@ def validate_args(args):
             print('Argument is invalid')
             exit()
 
-        if not(args[2] == 'sentence' or args[2] == 'docs'):
+        if not(args[2] == 'sentence' or args[2] == 'utterance'):
             print('Argument is invalid')
             exit()
 
@@ -73,7 +73,7 @@ def load_model(model_type, segmentation_type):
 def evaluation(res, segmentation_model, segmentation_type, model_type, doc_type, doc_num):
     count = 0
     label_for_eval = []
-    path_for_eval = './data/eval/interview-text_eval_' + doc_num + '.txt'
+    path_for_eval = './data/eval/interview-text_' + doc_type + '_' + doc_num + '.txt'
     sentence = False
     if doc_type == 'sentence':
         sentence = True
@@ -151,7 +151,8 @@ def main_segmentation(doc_num, window_size, model_type, doc_type, segmentation_t
 
     # セグメント
     # save_path = './result/segmentation/' + segmentation_type + '/' + model_type + '/' + doc_type + '/interview_text/' + 'doc_num_' + doc_num + '_' + model_type + '_window_size_' + str(segmentation_model.window_size) + '_' + str(datetime.date.today())
-    save_path = './result/segmentation/' + segmentation_type + '/' + model_type + '/' + doc_type + '/interview_text/' + 'segmentation_interview-text_' + doc_num
+    # For lda
+    save_path = './data/segmentation/' + doc_type + '/' + 'interview-text_' + doc_num
     with open(save_path + '.txt', 'w') as f:
         for i in range(len(docs)):
             print(label[i] + '　' + docs[i].replace('\n','。'), file=f)
@@ -171,7 +172,7 @@ def main_segmentation(doc_num, window_size, model_type, doc_type, segmentation_t
 
 if __name__ == '__main__':
     # ハイパーパラメータ
-    window_size = 30
+    window_size = 5
     doc_num = '26'
 
     # 引数

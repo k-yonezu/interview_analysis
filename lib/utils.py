@@ -1,6 +1,7 @@
 import MeCab
 from gensim import models
 import re
+import os
 import urllib
 
 
@@ -21,16 +22,19 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
         info_elems = info.split(',')
 
         if polish:
-            if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞" and info_elems[0][-2:] != u"動詞":
+            if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
                 continue
             if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"数" or info_elems[1] == u"非自立":
                 continue
             # if info_elems[0][-2:] != u"名詞" or info_elems[1] != u"一般":
-            # if info_elems[6] == u"ない":
+            # if info_elems[0][-2:] == u"動詞":
             #     print(info_elems)
             #     continue
             if info_elems[6] in sw:
                 continue
+            # if info_elems[6] == u"ない":
+            #     print(info_elems)
+            #     continue
 
         # 6番目に、無活用系の単語が入る。もし6番目が'*'だったら0番目を入れる
         if info_elems[6] == '*':
@@ -70,14 +74,19 @@ def stems(text, *, polish=False, sw=[]):
 
 def stopwords():
     stopwords = []
-    slothlib_path = 'http://svn.sourceforge.jp/svnroot/slothlib/CSharp/Version1/SlothLib/NLP/Filter/StopWord/word/Japanese.txt'
-    slothlib_file = urllib.request.urlopen(url=slothlib_path)
-    slothlib_stopwords = [line.decode("utf-8").strip() for line in slothlib_file]
-    slothlib_stopwords = [ss for ss in slothlib_stopwords if not ss==u'']
-    # print(slothlib_stopwords)
+    path = './data/stopwords/Japanese.txt'
+    if os.path.exists(path):
+        with open(path) as f:
+            lines = f.readlines()
+            for line in lines:
+                stopwords.append(line.strip())
+    else:
+        print('Download sw from slothlib')
+        path = 'http://svn.sourceforge.jp/svnroot/slothlib/CSharp/Version1/SlothLib/NLP/Filter/StopWord/word/Japanese.txt'
+        slothlib_file = urllib.request.urlopen(url=path)
+        stopwords = [line.decode("utf-8").strip() for line in slothlib_file]
 
-    # Merge and drop duplication
-    stopwords += slothlib_stopwords
+    stopwords = [ss for ss in stopwords if not ss==u'']
     stopwords = list(set(stopwords))
 
     return stopwords

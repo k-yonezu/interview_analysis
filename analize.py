@@ -57,7 +57,7 @@ def validate_args(args):
             print('Argument is invalid')
             exit()
 
-        if not(args[2] == 'sentence' or args[2] == 'docs'):
+        if not(args[2] == 'sentence' or args[2] == 'utterance'):
             print('Argument is invalid')
             exit()
 

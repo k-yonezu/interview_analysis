@@ -15,7 +15,7 @@ def validate_args(args):
             print('Argument is invalid')
             exit()
 
-        if not(args[2] == 'sentence' or args[2] == 'docs' or args[2] == 'segmentation'):
+        if not(args[2] == 'sentence' or args[2] == 'utterance' or args[2] == 'segmentation'):
             print('Argument is invalid')
             exit()
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         # to sentence
         data = utils.to_sentence(data)
         docs = [row[1] for row in data]
-    if sum_type == 'docs':
+    if sum_type == 'utterance':
         data = utils.load_data(path)
         docs = [row[1] for row in data]
     if sum_type == 'segmentation':
