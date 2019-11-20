@@ -1,4 +1,3 @@
-# 自作のデータ読み込み&前処理用ライブラリ
 from lib.tfidf import TfidfModel
 from lib.utils import stems
 from lib.utils import stopwords
@@ -11,6 +10,8 @@ import sys
 import re
 import numpy as np
 from tqdm import tqdm
+import random
+random.seed(1)
 
 
 def load_data_for_segmentation(doc_num):
@@ -95,20 +96,43 @@ if __name__ == '__main__':
     doc_num = '01_' + doc_num
 
     # Params
-    no_below = 5
+    no_below = 1
     no_above = 0.5
     keep_n = 100000
+    sw = stopwords()
+    print(len(docs))
+    data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
+
+    train_set = data_set
+    test_set = data_set
+
+    # print(data_set[:3])
+    # random.shuffle(data_set)
+    # print(data_set[:3])
+    # test_size = int(len(data_set) * 0.2)
+    # test_set = data_set[:test_size]
+    # train_set = data_set[test_size:]
 
     print('===コーパス生成===')
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    sw = stopwords()
-    docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
-    corpus = list(map(dictionary.doc2bow, docs_for_training))
+    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    tfidf.train(train_set)
+    train_dict = tfidf.dictionary
+    train_corpus = tfidf.corpus
+    # corpus = tfidf.model[corpus]
+
+    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    print(tfidf.dictionary)
+    tfidf.train(test_set)
+    test_dict = tfidf.dictionary
+    test_corpus = tfidf.corpus
+
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 
     #Metrics for Topic Models
     start = 2
-    limit = 30
+    limit = 20
     step = 1
 
     coherence_vals = []
@@ -116,9 +140,9 @@ if __name__ == '__main__':
 
     for n_topic in tqdm(range(start, limit, step)):
         # LDAモデルの構築
-        lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=n_topic, random_state=0)
-        perplexity_vals.append(np.exp2(-lda_model.log_perplexity(corpus)))
-        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=docs_for_training, dictionary=dictionary, coherence='c_v')
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=train_dict, num_topics=n_topic, random_state=0)
+        perplexity_vals.append(np.exp2(-lda_model.log_perplexity(test_corpus)))
+        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=test_set, dictionary=train_dict, coherence='c_v')
         coherence_vals.append(coherence_model_lda.get_coherence())
 
     # evaluation

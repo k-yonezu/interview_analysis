@@ -1,4 +1,3 @@
-# 自作のデータ読み込み&前処理用ライブラリ
 from lib.tfidf import TfidfModel
 from lib.utils import stems
 from lib.utils import stopwords
@@ -21,7 +20,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
 
 
 def write_topic_probs(docs, prob_arr, model_type, doc_type, doc_num, topic_N):
-    with open('./result/sorted/lda/' + 'model_type' + model_type + '/' + 'doc_type_' + doc_type + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
+    with open('./result/sorted/lda/' + 'model_type_' + model_type + '/' + 'doc_type_' + doc_type + '/' + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
         for num in range(topic_N):
             probs = []
             for arr in prob_arr:
@@ -91,16 +90,21 @@ if __name__ == '__main__':
     doc_num = '01_' + doc_num
 
     # Params
-    no_below = 5
+    no_below = 1
     no_above = 0.5
     keep_n = 100000
-    topic_N = 10
-
-    # Load dict
-    print('===コーパス生成===')
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    topic_N = 7
     sw = stopwords()
-    corpus = list(map(dictionary.doc2bow, [stems(doc, polish=True, sw=sw) for doc in docs]))
+    docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
+
+    print('===コーパス生成===')
+    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    tfidf.train(docs_for_training)
+    dictionary = tfidf.dictionary
+    corpus = tfidf.corpus
+
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 
     # Load lda

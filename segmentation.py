@@ -172,7 +172,7 @@ def main_segmentation(doc_num, window_size, model_type, doc_type, segmentation_t
 
 if __name__ == '__main__':
     # ハイパーパラメータ
-    window_size = 5
+    window_size = 30
     doc_num = '26'
 
     # 引数
