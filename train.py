@@ -32,6 +32,11 @@ if __name__ == '__main__':
     # max_characters: XX文字以上の単文は要約対象外
     # docs = utils.polish_docs(docs, max_characters=1000)
     docs_for_train = [stems(doc) for doc in docs]
+    print(docs_for_train[:10])
+    sum = 0
+    for arr in docs_for_train:
+        sum += len(arr)
+    print(sum)
     """
     以下のようなデータを作っています
     edocs_for_train = [

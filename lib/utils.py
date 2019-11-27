@@ -14,17 +14,41 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
     mecab_result = tagger.parse(text)
     info_of_words = mecab_result.split('\n')
     words = []
+    i = -1
     for info in info_of_words:
+        i += 1
         # macabで分けると、文の最後に’’が、その手前に'EOS'が来る
         if info == 'EOS' or info == '':
             break
             # info => 'な\t助詞,終助詞,*,*,*,*,な,ナ,ナ'
         info_elems = info.split(',')
 
+        # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞"  and info_elems[0][-2:] != u"動詞":
+        #     continue
+        # if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"非自立":
+        #     continue
+
         if polish:
-            if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
+            if info_elems[0][-2:] != u"名詞":
+            # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞"  and info_elems[0][-2:] != u"動詞":
+            # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
                 continue
             if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"数" or info_elems[1] == u"非自立":
+                continue
+            if info_elems[6] == u"商店":
+                if i + 1 < len(info_of_words):
+                    if info_of_words[i+1].split(',')[6] == u"街":
+                        words.append(u"商店街")
+                        continue
+            if info_elems[6] == u"ハロ":
+                if i + 1 < len(info_of_words):
+                    if info_of_words[i+1].split(',')[6] == u"ウィーン":
+                        words.append(u"ハロウィーン")
+                        continue
+            if info_elems[6] == u"You":
+                if i + 1 < len(info_of_words):
+                    if info_of_words[i+1].split(',')[6] == u"Tube":
+                        words.append(u"YouTube")
                 continue
             # if info_elems[0][-2:] != u"名詞" or info_elems[1] != u"一般":
             # if info_elems[0][-2:] == u"動詞":
@@ -32,6 +56,7 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
             #     continue
             if info_elems[6] in sw:
                 continue
+
             # if info_elems[6] == u"ない":
             #     print(info_elems)
             #     continue

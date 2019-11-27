@@ -11,14 +11,14 @@ import re
 import numpy as np
 from tqdm import tqdm
 import random
-random.seed(1)
+random.seed(11)
 
 
 def load_data_for_segmentation(doc_num):
     print('Interview:',  doc_num)
-    # path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
+    path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
     # ans
-    path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
+    # path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_for_eval(path)
 
@@ -100,31 +100,38 @@ if __name__ == '__main__':
     no_above = 0.5
     keep_n = 100000
     sw = stopwords()
-    print(len(docs))
     data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
 
-    train_set = data_set
-    test_set = data_set
-
-    # print(data_set[:3])
-    # random.shuffle(data_set)
-    # print(data_set[:3])
-    # test_size = int(len(data_set) * 0.2)
-    # test_set = data_set[:test_size]
-    # train_set = data_set[test_size:]
-
     print('===コーパス生成===')
-    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    tfidf.train(train_set)
-    train_dict = tfidf.dictionary
-    train_corpus = tfidf.corpus
+    # train_set = data_set
+    # test_set = data_set
+
+    dictionary = gensim.corpora.Dictionary(data_set)
+    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    corpus = list(map(dictionary.doc2bow, data_set))
+
+    print(data_set[:3])
+    random.shuffle(data_set)
+    print(data_set[:3])
+    test_size = int(len(data_set) * 0.2)
+    test_set = data_set[:test_size]
+    train_set = data_set[test_size:]
+    # train_set = data_set
+    # test_set = data_set
+
+    test_corpus = list(map(dictionary.doc2bow, test_set))
+    train_corpus = list(map(dictionary.doc2bow, train_set))
+
+    # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    # tfidf.train(train_set)
+    # train_dict = tfidf.dictionary
+    # train_corpus = tfidf.corpus
     # corpus = tfidf.model[corpus]
 
-    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    print(tfidf.dictionary)
-    tfidf.train(test_set)
-    test_dict = tfidf.dictionary
-    test_corpus = tfidf.corpus
+    # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    # tfidf.train(test_set)
+    # test_dict = tfidf.dictionary
+    # test_corpus = tfidf.corpus
 
     # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     # corpus = list(map(dictionary.doc2bow, docs_for_training))
@@ -140,9 +147,9 @@ if __name__ == '__main__':
 
     for n_topic in tqdm(range(start, limit, step)):
         # LDAモデルの構築
-        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=train_dict, num_topics=n_topic, random_state=0)
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=dictionary, num_topics=n_topic, random_state=0, iterations=300)
         perplexity_vals.append(np.exp2(-lda_model.log_perplexity(test_corpus)))
-        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=test_set, dictionary=train_dict, coherence='c_v')
+        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=train_set, dictionary=dictionary, coherence='u_mass')
         coherence_vals.append(coherence_model_lda.get_coherence())
 
     # evaluation

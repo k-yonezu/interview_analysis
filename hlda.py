@@ -1,3 +1,4 @@
+from py3hlda.sampler import HierarchicalLDA
 # 自作のデータ読み込み&前処理用ライブラリ
 from lib.tfidf import TfidfModel
 from lib.utils import stems
@@ -36,18 +37,9 @@ if __name__ == '__main__':
 
     doc_num = 'all'
     path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
+    ans = True
 
-    if doc_type == 'sentence':
-        data = utils.load_data(path)
-        # to sentence
-        data = utils.to_sentence(data)
-        docs = [row[1] for row in data]
-
-    if doc_type == 'utterance':
-        data = utils.load_data(path)
-        docs = [row[1] for row in data]
-
-    elif doc_type == 'segmentation' or doc_type == 'segmentation/ans':
+    if doc_type == 'segmentation' or doc_type == 'segmentation/ans':
         ans = False
         if doc_type == 'segmentation/ans':
             ans = True
@@ -82,7 +74,7 @@ if __name__ == '__main__':
     no_below = 1
     no_above = 0.5
     keep_n = 100000
-    topic_N = 8
+    topic_N = 4
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
@@ -92,43 +84,28 @@ if __name__ == '__main__':
     tfidf.train(docs_for_training)
     dictionary = tfidf.dictionary
     corpus = tfidf.corpus
-    # corpus = tfidf.model[corpus]
-
-    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    # corpus = list(map(dictionary.doc2bow, docs_for_training))
+    vocab = list(dictionary.token2id.keys())
+    new_corpus = []
+    for sent in corpus:
+        tmp = []
+        for w in sent:
+            tmp.append(w[0])
+        new_corpus.append(tmp)
+    print(vocab[:3])
+    print(corpus[:3])
+    print(new_corpus[:3])
 
     print(docs[-3:])
-    # print([stems(doc, polish=True, sw=sw) for doc in docs][0])
+    n_samples = 500       # no of iterations for the sampler
+    alpha = 10.0          # smoothing over level distributions
+    gamma = 1.0           # CRP smoothing parameter; number of imaginary customers at next, as yet unused table
+    eta = 0.1             # smoothing over topic-word distributions
+    num_levels = 3        # the number of levels in the tree
+    display_topics = 50   # the number of iterations between printing a brief summary of the topics so far
+    n_words = 5           # the number of most probable words to print for each topic after model estimation
+    with_weights = False  # whether to print the words with the weights   # print([stems(doc, polish=True, sw=sw) for doc in docs][0])
 
     # LDAモデルの構築
-    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=topic_N, id2word=dictionary, random_state=0, iterations=300)
-
-    # モデルのsave
-    lda.save('./model/lda/' + doc_type + '/' + 'topic_' + str(topic_N) + '.model')
-
-    save_path = './result/clustering/lda/' + doc_type + '/'
-    with open(save_path + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
-        for i in range(topic_N):
-            print("\n", file=f)
-            print("="*80, file=f)
-            print("TOPIC {0}\n".format(i+1), file=f)
-            topic = lda.show_topic(i, topn=30)
-            for t in topic:
-                print("{0:20s}{1}".format(t[0], t[1]), file=f)
-
-    # 可視化
-    # Vis Metric MDS
-    mds_type = 'mmds'
-    vis_mds = pyLDAvis.gensim.prepare(lda, corpus, dictionary, mds=mds_type, sort_topics=False)
-
-    # save as html
-    pyLDAvis.save_html(vis_mds, save_path + mds_type  + '_doc_num_' + doc_num + '_topic_' + str(topic_N) + '.html')
-
-    # for topic in lda.show_topics(-1, num_words=20):
-    #     print(topic)
-    # # セグメント単位で入れた場合の処理
-    # target_record = 5 # 分析対象のドキュメントインデックス
-    # print(docs[5])
-
-    # for topics_per_document in lda[corpus[target_record]]:
-    #     print(topics_per_document[0], topics_per_document[1])
+    hlda = HierarchicalLDA(new_corpus, vocab, alpha=alpha, gamma=gamma, eta=eta, num_levels=num_levels)
+    res = hlda.estimate(n_samples, display_topics=display_topics, n_words=n_words, with_weights=with_weights)
+    print(res)

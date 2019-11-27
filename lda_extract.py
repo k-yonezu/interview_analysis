@@ -14,6 +14,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
     path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
     # path = './data/segmentation/utterance/interview-text_' + doc_num + '.txt'
     if ans:
+        print('a')
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_for_eval(path)
@@ -61,7 +62,9 @@ if __name__ == '__main__':
 
     doc_num = 'all'
     # path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
-    ans = True
+    ans = False
+    if doc_type == 'segmentation/ans':
+        ans = True
 
     if doc_num == 'all':
         doc_num = '26'
@@ -93,7 +96,7 @@ if __name__ == '__main__':
     no_below = 1
     no_above = 0.5
     keep_n = 100000
-    topic_N = 7
+    topic_N = 8
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
