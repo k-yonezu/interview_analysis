@@ -40,6 +40,7 @@ def write_topic_probs(docs, prob_arr, model_type, doc_type, doc_num, topic_N):
             # print(docs[sorted_probs[0][0]])
             for doc in [docs[e[0]] for e in sorted_probs[:5]]:
                 i += 1
+                print('---------------------------------------', file=f)
                 print(str(i) + ':', file=f)
                 print(doc, file=f)
 

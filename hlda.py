@@ -74,7 +74,6 @@ if __name__ == '__main__':
     no_below = 1
     no_above = 0.5
     keep_n = 100000
-    topic_N = 4
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
@@ -84,28 +83,37 @@ if __name__ == '__main__':
     tfidf.train(docs_for_training)
     dictionary = tfidf.dictionary
     corpus = tfidf.corpus
-    vocab = list(dictionary.token2id.keys())
+    dict_item = dictionary.token2id.items()
+    vocab = [''] * len(dict_item)
+    for w, i in dict_item:
+        vocab[i] = w
     new_corpus = []
     for sent in corpus:
         tmp = []
         for w in sent:
-            tmp.append(w[0])
+            if w[1] == 1:
+                tmp.append(w[0])
+            else:
+                for i in range(w[1]):
+                    tmp.append(w[0])
         new_corpus.append(tmp)
-    print(vocab[:3])
-    print(corpus[:3])
-    print(new_corpus[:3])
+    print(docs[:3])
+    print(docs_for_training[:3])
+    print(vocab[:15])
+    print(corpus[:5])
+    print(new_corpus[:5])
 
     print(docs[-3:])
-    n_samples = 500       # no of iterations for the sampler
-    alpha = 10.0          # smoothing over level distributions
+
+    n_samples = 300       # no of iterations for the sampler
+    alpha = 1.0          # smoothing over level distributions
     gamma = 1.0           # CRP smoothing parameter; number of imaginary customers at next, as yet unused table
-    eta = 0.1             # smoothing over topic-word distributions
+    eta = 0.005             # smoothing over topic-word distributions
     num_levels = 3        # the number of levels in the tree
-    display_topics = 50   # the number of iterations between printing a brief summary of the topics so far
-    n_words = 5           # the number of most probable words to print for each topic after model estimation
-    with_weights = False  # whether to print the words with the weights   # print([stems(doc, polish=True, sw=sw) for doc in docs][0])
+    display_topics = 100   # the number of iterations between printing a brief summary of the topics so far
+    n_words =  10          # the number of most probable words to print for each topic after model estimation
+    with_weights = True  # whether to print the words with the weights
 
     # LDAモデルの構築
     hlda = HierarchicalLDA(new_corpus, vocab, alpha=alpha, gamma=gamma, eta=eta, num_levels=num_levels)
     res = hlda.estimate(n_samples, display_topics=display_topics, n_words=n_words, with_weights=with_weights)
-    print(res)

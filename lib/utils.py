@@ -56,6 +56,9 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
             #     continue
             if info_elems[6] in sw:
                 continue
+            if info_elems[6] == '*':
+                if info_elems[0][:-3] in sw:
+                    continue
 
             # if info_elems[6] == u"ない":
             #     print(info_elems)
