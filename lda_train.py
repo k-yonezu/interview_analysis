@@ -79,21 +79,26 @@ if __name__ == '__main__':
     doc_num = '01_' + doc_num
 
     # Params
-    no_below = 1
+    no_below = 3
     no_above = 0.5
     keep_n = 100000
-    topic_N = 8
+    topic_N = 7
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
     print('===コーパス生成===')
     # tfidf
-    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    tfidf.train(docs_for_training)
-    dictionary = tfidf.dictionary
-    corpus = tfidf.corpus
+    # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    # tfidf.train(docs_for_training)
+    # dictionary = tfidf.dictionary
+    # corpus = tfidf.corpus
     # corpus = tfidf.model[corpus]
 
+    dictionary = gensim.corpora.Dictionary(docs_for_training)
+    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    corpus = list(map(dictionary.doc2bow, docs_for_training))
+
+    # Load
     # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     # corpus = list(map(dictionary.doc2bow, docs_for_training))
 

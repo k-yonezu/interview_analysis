@@ -96,7 +96,7 @@ if __name__ == '__main__':
     doc_num = '01_' + doc_num
 
     # Params
-    no_below = 1
+    no_below = 3
     no_above = 0.5
     keep_n = 100000
     sw = stopwords()
@@ -106,9 +106,14 @@ if __name__ == '__main__':
     # train_set = data_set
     # test_set = data_set
 
+    # tfidf
     dictionary = gensim.corpora.Dictionary(data_set)
     dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
     corpus = list(map(dictionary.doc2bow, data_set))
+
+    # Load
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # corpus = list(map(dictionary.doc2bow, data_set))
 
     print(data_set[:3])
     random.shuffle(data_set)

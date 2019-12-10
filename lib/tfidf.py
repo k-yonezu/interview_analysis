@@ -48,6 +48,7 @@ class TfidfModel(object):
         self.corpus = list(map(self.dictionary.doc2bow, docs))
         self.model = gensim.models.TfidfModel(self.corpus)
 
+    def save_model(self):
         # 保存
         self.dictionary.save_as_text('./model/tfidf/dict_' + str(self.no_below) + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.dict')
         gensim.corpora.MmCorpus.serialize('./model/tfidf/corpus_' + str(self.no_below)  + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.mm', self.corpus)

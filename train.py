@@ -1,6 +1,7 @@
 from lib.tfidf import TfidfModel
 from lib.doc2vec import Doc2Vec
 from lib.word2vec import Word2Vec
+from lib.utils import stopwords
 from lib.utils import stems
 from lib import utils
 import sys
@@ -31,7 +32,8 @@ if __name__ == '__main__':
 
     # max_characters: XX文字以上の単文は要約対象外
     # docs = utils.polish_docs(docs, max_characters=1000)
-    docs_for_train = [stems(doc) for doc in docs]
+    sw = stopwords()
+    docs_for_train = [stems(doc, polish=True, sw=sw) for doc in docs]
     print(docs_for_train[:10])
     sum = 0
     for arr in docs_for_train:
@@ -55,8 +57,9 @@ if __name__ == '__main__':
         # GensimのTFIDFモデルを用いた文のベクトル化
         print('===TFIDFモデル生成===')
         print('Train tfidf model')
-        tfidf = TfidfModel(no_below=1, no_above=1.0, keep_n=100000)
+        tfidf = TfidfModel(no_below=3, no_above=0.5, keep_n=100000)
         tfidf.train(docs_for_train)
+        tfidf.save_model()
         print('Done')
 
     elif model_type == 'doc2vec':

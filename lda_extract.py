@@ -102,13 +102,13 @@ if __name__ == '__main__':
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
     print('===コーパス生成===')
-    tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    tfidf.train(docs_for_training)
-    dictionary = tfidf.dictionary
-    corpus = tfidf.corpus
+    dictionary = gensim.corpora.Dictionary(docs_for_training)
+    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    corpus = list(map(dictionary.doc2bow, docs_for_training))
 
-    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    # corpus = list(map(dictionary.doc2bow, docs_for_training))
+    # Load
+    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 
     # Load lda
