@@ -17,7 +17,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
         print('a')
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
-    return utils.load_data_for_eval(path)
+    return utils.load_data_segment(path)
 
 
 def write_topic_probs(docs, prob_arr, model_type, doc_type, doc_num, topic_N):
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     doc_num = '01_' + doc_num
 
     # Params
-    no_below = 1
+    no_below = 3
     no_above = 0.5
     keep_n = 100000
     topic_N = 8
@@ -104,10 +104,8 @@ if __name__ == '__main__':
     print('===コーパス生成===')
     dictionary = gensim.corpora.Dictionary(docs_for_training)
     dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    corpus = list(map(dictionary.doc2bow, docs_for_training))
-
     # Load
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 

@@ -33,7 +33,7 @@ def load_data_for_segmentation(doc_num):
     print('Interview:',  doc_num)
     path = './data/segmentation/segmentation_interview-text_' + doc_num + '.txt'
 
-    return utils.load_data_for_eval(path)
+    return utils.load_data_segment(path)
 
 
 if __name__ == '__main__':

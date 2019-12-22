@@ -1,0 +1,14 @@
+- sentence
+  - no_below = 3
+    level_3_eta_0005_interview_01_01_01_2019-12-11.txt
+    level_3_eta_05_interview_01_01_01_2019-12-10.txt
+
+- segment
+  - no_below = 3
+  polish_level_3_iter_500_eta_0005_interview_01_26.txt
+  polish_*
+
+
+- メモ
+  - そもそも推論する？, 教師なし学習なので毎回学習すればいい？
+  - paramの初期値をデータによって帰るのは不適切？

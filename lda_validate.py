@@ -20,14 +20,14 @@ def load_data_for_segmentation(doc_num):
     # ans
     # path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
-    return utils.load_data_for_eval(path)
+    return utils.load_data_segment(path)
 
 
 def load_data_per_interview(doc_num):
     print('Interview:',  doc_num)
     path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
 
-    return utils.load_text(path)
+    return utils.load_data(path)
 
 
 if __name__ == '__main__':
@@ -58,14 +58,21 @@ if __name__ == '__main__':
     if doc_type == 'interview':
         if doc_num == 'all':
             doc_num = '26'
-        docs = []
+        data_arr = []
         for num in range(int(doc_num)):
             num += 1
             if num < 10:
                 num = '0' + str(num)
             else:
                 num = str(num)
-            docs.append(load_data_per_interview(num))
+            data_arr.append(load_data_per_interview(num))
+
+        docs = []
+        for data in data_arr:
+            tmp_docs = []
+            for ele in data:
+                tmp_docs.extend([ele[1]])
+            docs.append('\n'.join(tmp_docs))
 
     elif doc_type == 'segmentation':
         if doc_num == 'all':
@@ -101,19 +108,23 @@ if __name__ == '__main__':
     keep_n = 100000
     sw = stopwords()
     data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
+    docs_for_dict = data_set
+
+    # for doc1
+    # sentence corpus
+    # data_for_dict = utils.load_data(path)
+    # data_for_dict = utils.to_sentence(data_for_dict)
+    # docs_for_dict = [row[1] for row in data_for_dict]
+    # docs_for_dict = [stems(doc, polish=True, sw=sw) for doc in docs_for_dict]
 
     print('===コーパス生成===')
-    # train_set = data_set
-    # test_set = data_set
-
-    # tfidf
-    dictionary = gensim.corpora.Dictionary(data_set)
+    # dict
+    dictionary = gensim.corpora.Dictionary(docs_for_dict)
     dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    corpus = list(map(dictionary.doc2bow, data_set))
-
+    # for sentence
     # Load
     # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    # corpus = list(map(dictionary.doc2bow, data_set))
+    corpus = list(map(dictionary.doc2bow, data_set))
 
     print(data_set[:3])
     random.shuffle(data_set)
@@ -142,7 +153,7 @@ if __name__ == '__main__':
     # corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 
-    #Metrics for Topic Models
+    # Metrics for Topic Models
     start = 2
     limit = 20
     step = 1

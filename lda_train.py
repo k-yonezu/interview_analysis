@@ -19,7 +19,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
     if ans:
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
-    return utils.load_data_for_eval(path)
+    return utils.load_data_segment(path)
 
 
 if __name__ == '__main__':
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     no_below = 3
     no_above = 0.5
     keep_n = 100000
-    topic_N = 7
+    topic_N = 5
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 

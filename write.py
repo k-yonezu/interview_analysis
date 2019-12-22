@@ -12,7 +12,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
     if ans:
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
-    return utils.load_data_for_eval(path)
+    return utils.load_data_segment(path)
 
 
 if __name__ == '__main__':

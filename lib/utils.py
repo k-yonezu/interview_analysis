@@ -33,6 +33,9 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
             # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞"  and info_elems[0][-2:] != u"動詞":
             # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
                 continue
+            if info_elems[1] == u"形容動詞語幹" or info_elems[1] == u"副詞可能":
+                continue
+
             if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"数" or info_elems[1] == u"非自立":
                 continue
             if info_elems[6] == u"商店":
@@ -60,7 +63,7 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
                 if info_elems[0][:-3] in sw:
                     continue
 
-            # if info_elems[6] == u"ない":
+            # if info_elems[6] == u"一番":
             #     print(info_elems)
             #     continue
 
@@ -120,7 +123,7 @@ def stopwords():
     return stopwords
 
 
-def load_data_for_eval(path, sentence=False):
+def load_data_segment(path, sentence=False):
     data = {}
     with open(path) as f:
         lines = f.readlines()

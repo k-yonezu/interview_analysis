@@ -77,7 +77,7 @@ def evaluation(res, segmentation_model, segmentation_type, model_type, doc_type,
     sentence = False
     if doc_type == 'sentence':
         sentence = True
-    data_for_eval = utils.load_data_for_eval(path_for_eval, sentence=sentence)
+    data_for_eval = utils.load_data_segment(path_for_eval, sentence=sentence)
     label_for_eval = [item[0] for item in data_for_eval.items() if '____' in item[1][0]]
 
     print('予測:', res.index.values)
