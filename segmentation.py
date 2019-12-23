@@ -40,11 +40,11 @@ def validate_args(args):
     return args[1], args[2], args[3], eval
 
 
-def load_model(model_type, segmentation_type):
+def load_model(model_type, segmentation_type, docs):
     if model_type == 'tfidf':
         # TFIDFモデル
         model = TfidfModel(no_below=1, no_above=1.0, keep_n=100000)
-        model.load_model()
+        model.train(docs)
     elif model_type == 'doc2vec':
         model = Doc2Vec(alpha=0.025, min_count=10, vector_size=300, epochs=50, workers=4)
         # model.load_model('./model/doc2vec/doc2vec_' + str(model.vector_size) + '.model')
@@ -133,11 +133,12 @@ def main_segmentation(doc_num, window_size, model_type, doc_type, segmentation_t
     # === Model ===
     print('Model:', model_type)
     print('Segmentation type:', segmentation_type)
-    model, segmentation_model = load_model(model_type, segmentation_type)
+    model, segmentation_model = load_model(model_type, segmentation_type, [stems(doc) for doc in docs])
 
     # === Result ===
-    print('===結果===')
+    print('Segmentation')
     res = segmentation_model.segment([stems(doc) for doc in docs])
+    print('Done')
     # print(res)
 
     # 画像

@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     doc_type = args[1]
 
-    doc_num = '04'
+    doc_num = 'all'
     ans = False
 
     if doc_type == 'segmentation' or doc_type == 'segmentation/ans':

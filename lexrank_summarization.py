@@ -107,7 +107,8 @@ if __name__ == '__main__':
     # 表示
     print('===要約===')
     # 要約
-    docs_summary = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=10, threshold=threshold)
+    indexes = summarize(docs, sent_vecs, sort_type=sort_type, sent_limit=10, threshold=threshold)
+    docs_summary = [docs[i] for i in indexes]
 
     with open('./result/summary/' + model_type + '/doc_num_' + doc_num + '_' + sum_type + '_' + sort_type + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
         if model_type == 'tfidf':

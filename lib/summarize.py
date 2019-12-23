@@ -22,6 +22,8 @@ def summarize(docs, sent_vecs, *, sort_type='mmr', sent_limit=10, threshold=0):
 
     # 抽出
     print(indexes)
-    summary_sents = [docs[i] for i in indexes]
+    # summary_sents = [docs[i] for i in indexes]
+    # return summary_sents
 
-    return summary_sents
+    return indexes
+

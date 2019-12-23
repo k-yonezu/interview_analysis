@@ -30,6 +30,7 @@ def get_docs_topic(hlda, docs, level=1):
         res[node.node_id]['docs'].append(doc)
     return res
 
+
 def load_zipped_pickle(filename):
     with gzip.open(filename, 'rb') as f:
         loaded_object = cPickle.load(f)
@@ -39,17 +40,21 @@ def load_zipped_pickle(filename):
 def load_data_for_segmentation(doc_num, *, ans=False):
     print('Interview:', doc_num)
     path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
-    # path = './data/segmentation/sentence/tmp_interview-text_' + doc_num + '.txt'
-    # path = './data/segmentation/utterance/interview-text_' + doc_num + '.txt'
     if ans:
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_segment(path)
 
 
-def lexrank(topic, level, node, docs):
+def lexrank(topic, level, node, original_docs):
     n_words = 10
     with_weights = False
+    docs = []
+    for arr in original_docs:
+        tmp_docs = []
+        for speaker, remark in arr:
+            tmp_docs.append(remark)
+        docs.append('\n'.join(tmp_docs))
 
     tfidf = TfidfModel(no_below=0, no_above=1.0, keep_n=100000)
     docs_for_training = [stems(doc) for doc in docs]
@@ -58,7 +63,9 @@ def lexrank(topic, level, node, docs):
     # 表示
     print('===要約===')
     # 要約
-    docs_summary = summarize(docs, sent_vecs, sort_type='normal', sent_limit=5, threshold=0.1)
+    indexes = summarize(docs, sent_vecs, sort_type='normal', sent_limit=5, threshold=0.1)
+    docs_summary = [original_docs[i] for i in indexes]
+
     dir = './result/summary/hlda/' + model_name + '/level_' + str(level)
     if not(os.path.exists(dir)):
         os.makedirs(dir)
@@ -74,9 +81,12 @@ def lexrank(topic, level, node, docs):
             msg = '        topic=%d level=%d (documents=%d): ' % (node_child.node_id, node_child.level, node_child.customers)
             msg += node_child.get_top_words(n_words, with_weights)
             print(msg, file=f)
-        print('', file=f)
+        print('-------------------------------', file=f)
         for i, docs in enumerate(docs_summary):
-            print(str(i+1) + ': ' + docs.strip(), file=f)
+            print('', file=f)
+            print(str(i+1) + ':', file=f)
+            for speaker, remark in docs:
+                print(speaker + '　' + remark, file=f)
 
 
 if __name__ == '__main__':
@@ -108,16 +118,23 @@ if __name__ == '__main__':
                 num = str(num)
             data_arr.append(load_data_for_segmentation(num, ans=ans))
 
-        # セグメント単位でまとめる
-        docs = []
+        original_docs = []
         for data in data_arr:
             tmp_docs = []
             for item in data.items():
                 if '_____' in item[1][0]:
-                    docs.append('\n'.join(tmp_docs))
+                    original_docs.append(tmp_docs)
                     tmp_docs = []
                 else:
-                    tmp_docs.extend([item[1][1]])
+                    tmp_docs.append((item[1][0], item[1][1]))
+            original_docs.append(tmp_docs)
+
+        # セグメント単位でまとめる
+        docs = []
+        for arr in original_docs:
+            tmp_docs = []
+            for speaker, remark in arr:
+                tmp_docs.append(remark)
             docs.append('\n'.join(tmp_docs))
 
     path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
@@ -164,7 +181,7 @@ if __name__ == '__main__':
     hlda = load_zipped_pickle('./model/hlda/' + model_name + '.p')
 
     level = 2
-    res = get_docs_topic(hlda, docs, level=level)
+    res = get_docs_topic(hlda, original_docs, level=level)
     print(res.keys())
 
     docs_for_tfidf = []
