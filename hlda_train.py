@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     doc_type = args[1]
 
-    doc_num = 'all'
+    doc_num = '04'
     ans = False
 
     if doc_type == 'segmentation' or doc_type == 'segmentation/ans':
@@ -99,11 +99,11 @@ if __name__ == '__main__':
     # docs_for_dict = [stems(doc, polish=True, sw=sw) for doc in docs_for_dict]
 
     # print('===コーパス生成===')
-    # dictionary = gensim.corpora.Dictionary(docs_for_dict)
-    # dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    dictionary = gensim.corpora.Dictionary(docs_for_dict)
+    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
     # for sentence
     # Load
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     corpus = list(map(dictionary.doc2bow, docs_for_training))
 
     # for hlda
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     print(docs[-3:])
 
     n_samples = 500       # no of iterations for the sampler
-    alpha = 10.0          # smoothing over level distributions
+    alpha = 1.0          # smoothing over level distributions
     gamma = 1.0           # CRP smoothing parameter; number of imaginary customers at next, as yet unused table
     eta = 0.005             # smoothing over topic-word distributions
     num_levels = 4        # the number of levels in the tree
@@ -141,8 +141,10 @@ if __name__ == '__main__':
     alpha_for_path = str(alpha).split('.')[0]
 
     # LDAモデルの構築
-    path = './result/hlda/level_' + str(num_levels) + '_alpha_' + alpha_for_path  + '_eta_' + eta_for_path + '_interview_' + str(doc_num) + '_' + str(datetime.date.today()) + '.txt'
+    model_name = 'levels_' + str(num_levels) + '_alpha_' + alpha_for_path  + '_eta_' + eta_for_path + '_interview_' + str(doc_num)
+    path = './result/hlda/' + model_name + '_' + str(datetime.date.today()) + '.txt'
     hlda = HierarchicalLDA(new_corpus, vocab, alpha=alpha, gamma=gamma, eta=eta, num_levels=num_levels, seed=10)
     hlda.estimate(n_samples, display_topics=display_topics, n_words=n_words, with_weights=with_weights, path=path)
 
-    save_zipped_pickle(hlda, './model/hlda/level_' + str(num_levels) + '_alpha_' + alpha_for_path + '_eta_' + eta_for_path + '_interview_' + str(doc_num) + '.p')
+    # save model
+    save_zipped_pickle(hlda, './model/hlda/' + model_name + '.p')

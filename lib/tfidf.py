@@ -36,9 +36,9 @@ class TfidfModel(object):
         self.model = None
         self.corpus = None
 
-    def load_model(self):
-        self.dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(self.no_below) + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.dict')
-        self.corpus = gensim.corpora.MmCorpus('./model/tfidf/corpus_' + str(self.no_below) + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.mm')
+    def load_model(self, dir='./model/tfidf/'):
+        self.dictionary = gensim.corpora.Dictionary.load_from_text(dir + 'dict_' + str(self.no_below) + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.dict')
+        self.corpus = gensim.corpora.MmCorpus(dir + 'corpus_' + str(self.no_below) + '_' + str(int(self.no_above * 100)) + '_' + str(self.keep_n) + '.mm')
         self.model = gensim.models.TfidfModel(self.corpus)
 
     # モデル生成

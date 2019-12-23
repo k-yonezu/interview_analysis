@@ -6,50 +6,12 @@ from lib.utils import stopwords
 from lib import utils
 import gensim
 from pprint import pprint
-import datetime
 import sys
-import re
-import pyLDAvis
-import pyLDAvis.gensim
 import _pickle as cPickle
 import gzip
+import os
+from lib.summarize import summarize
 
-
-colour_map = {
-    0: 'blue',
-    1: 'red',
-    2: 'green'
-}
-
-def show_doc(d=0):
-    
-    node = hlda.document_leaves[d]
-    path = []
-    while node is not None:
-        path.append(node)
-        node = node.parent
-    path.reverse()   
-    
-    n_words = 10
-    with_weights = False    
-    for n in range(len(path)):
-        node = path[n]
-        colour = colour_map[n] 
-        msg = 'Level %d Topic %d: ' % (node.level, node.node_id)
-        msg += node.get_top_words(n_words, with_weights)
-        output = '<h%d><span style="color:%s">%s</span></h3>' % (n+1, colour, msg)
-        display(HTML(output))
-        
-    display(HTML('<hr/><h5>Processed Document</h5>'))
-
-    doc = corpus[d]
-    output = ''
-    for n in range(len(doc)):
-        w = doc[n]
-        l = hlda.levels[d][n]
-        colour = colour_map[l]
-        output += '<span style="color:%s">%s</span> ' % (colour, w)
-    display(HTML(output))
 
 def get_docs_topic(hlda, docs, level=1):
     res = {}
@@ -62,12 +24,10 @@ def get_docs_topic(hlda, docs, level=1):
             node = node.parent
         path.reverse()
 
-        n_words = 15
-        with_weights = False
         node = path[level]
         if node.node_id not in res.keys():
-            res[node.node_id] = []
-        res[node.node_id].append(doc)
+            res[node.node_id] = {'node': node, 'docs': []}
+        res[node.node_id]['docs'].append(doc)
     return res
 
 def load_zipped_pickle(filename):
@@ -77,7 +37,7 @@ def load_zipped_pickle(filename):
 
 
 def load_data_for_segmentation(doc_num, *, ans=False):
-    print('Interview:',  doc_num)
+    print('Interview:', doc_num)
     path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
     # path = './data/segmentation/sentence/tmp_interview-text_' + doc_num + '.txt'
     # path = './data/segmentation/utterance/interview-text_' + doc_num + '.txt'
@@ -85,6 +45,38 @@ def load_data_for_segmentation(doc_num, *, ans=False):
         path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_segment(path)
+
+
+def lexrank(topic, level, node, docs):
+    n_words = 10
+    with_weights = False
+
+    tfidf = TfidfModel(no_below=0, no_above=1.0, keep_n=100000)
+    docs_for_training = [stems(doc) for doc in docs]
+    tfidf.train(docs_for_training)
+    sent_vecs = tfidf.to_vector(docs_for_training)
+    # 表示
+    print('===要約===')
+    # 要約
+    docs_summary = summarize(docs, sent_vecs, sort_type='normal', sent_limit=5, threshold=0.1)
+    dir = './result/summary/hlda/' + model_name + '/level_' + str(level)
+    if not(os.path.exists(dir)):
+        os.makedirs(dir)
+    with open(dir + '/topic_' + str(topic) + '.txt', 'w') as f:
+        node_parent = node.parent
+        msg = 'topic=%d level=%d (documents=%d): ' % (node_parent.node_id, node_parent.level, node_parent.customers)
+        msg += node_parent.get_top_words(n_words, with_weights)
+        print(msg, file=f)
+        msg = '    topic=%d level=%d (documents=%d): ' % (node.node_id, node.level, node.customers)
+        msg += node.get_top_words(n_words, with_weights)
+        print(msg, file=f)
+        for node_child in node.children:
+            msg = '        topic=%d level=%d (documents=%d): ' % (node_child.node_id, node_child.level, node_child.customers)
+            msg += node_child.get_top_words(n_words, with_weights)
+            print(msg, file=f)
+        print('', file=f)
+        for i, docs in enumerate(docs_summary):
+            print(str(i+1) + ': ' + docs.strip(), file=f)
 
 
 if __name__ == '__main__':
@@ -99,7 +91,7 @@ if __name__ == '__main__':
 
     doc_type = args[1]
 
-    doc_num = '26'
+    doc_num = 'all'
     ans = False
 
     if doc_type == 'segmentation' or doc_type == 'segmentation/ans':
@@ -149,11 +141,11 @@ if __name__ == '__main__':
     # docs_for_dict = [stems(doc, polish=True, sw=sw) for doc in docs_for_dict]
 
     # print('===コーパス生成===')
-    # dictionary = gensim.corpora.Dictionary(docs_for_dict)
-    # dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+    dictionary = gensim.corpora.Dictionary(docs_for_dict)
+    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
     # for sentence
     # Load
-    dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     corpus = list(map(dictionary.doc2bow, docs_for_training))
 
     n_samples = 500       # no of iterations for the sampler
@@ -162,31 +154,21 @@ if __name__ == '__main__':
     eta = 0.005             # smoothing over topic-word distributions
     num_levels = 4        # the number of levels in the tree
     display_topics = 100   # the number of iterations between printing a brief summary of the topics so far
-    n_words =  5          # the number of most probable words to print for each topic after model estimation
+    n_words = 10          # the number of most probable words to print for each topic after model estimation
     with_weights = False  # whether to print the words with the weights
 
     eta_for_path = ''.join(str(eta).split('.'))
     alpha_for_path = str(alpha).split('.')[0]
-    path = './model/hlda/level_' + str(num_levels) + '_alpha_' + alpha_for_path + '_eta_' + eta_for_path + '_interview_' + str(doc_num) + '.p'
+    model_name = 'levels_' + str(num_levels) + '_alpha_' + alpha_for_path + '_eta_' + eta_for_path + '_interview_' + str(doc_num)
 
-    hlda = load_zipped_pickle(path)
+    hlda = load_zipped_pickle('./model/hlda/' + model_name + '.p')
 
     level = 2
     res = get_docs_topic(hlda, docs, level=level)
     print(res.keys())
+
     docs_for_tfidf = []
 
-    # tfidf
-    # 他のトピックと比較してTFIDF値算出
-    for i, v in res.items():
-        docs_for_tfidf.append('\n'.join(v))
-    print(len(docs_for_tfidf))
-
-    docs_for_tfidf = [stems(doc) for doc in docs_for_tfidf]
-    tfidf = TfidfModel(no_below=0, no_above=1.0, keep_n=100000)
-    tfidf.train(docs_for_tfidf)
-    dictionary = tfidf.dictionary
-    corpus = tfidf.corpus
-    corpus_tfidf = tfidf.model[tfidf.corpus]
-    dir = './model/tfidf/hlda/levels_' + str(num_levels) + '_alpha_' + alpha_for_path + '_eta_' + eta_for_path + '_interview_' + str(doc_num) + '/level_' + str(level) + '/'
-    tfidf.save_model(dir=dir)
+    # for topic
+    for key, ele in res.items():
+        lexrank(key, level, ele['node'], ele['docs'])
