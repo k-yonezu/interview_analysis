@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     doc_type = args[1]
 
-    doc_num = 'all'
+    doc_num = '05'
     ans = False
 
     if doc_type == 'segmentation' or doc_type == 'segmentation/ans':
@@ -141,10 +141,13 @@ if __name__ == '__main__':
     alpha_for_path = str(alpha).split('.')[0]
 
     # LDAモデルの構築
+    dir = 'hlda/'
+    if ans:
+        dir += 'ans/'
     model_name = 'levels_' + str(num_levels) + '_alpha_' + alpha_for_path  + '_eta_' + eta_for_path + '_interview_' + str(doc_num)
-    path = './result/hlda/' + model_name + '_' + str(datetime.date.today()) + '.txt'
+    path = './result/' + dir + model_name + '_' + str(datetime.date.today()) + '.txt'
     hlda = HierarchicalLDA(new_corpus, vocab, alpha=alpha, gamma=gamma, eta=eta, num_levels=num_levels, seed=10)
     hlda.estimate(n_samples, display_topics=display_topics, n_words=n_words, with_weights=with_weights, path=path)
 
     # save model
-    save_zipped_pickle(hlda, './model/hlda/' + model_name + '.p')
+    save_zipped_pickle(hlda, './model/' + dir + model_name + '.p')

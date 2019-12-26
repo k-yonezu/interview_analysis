@@ -13,6 +13,31 @@ import os
 from lib.summarize import summarize
 
 
+def show_doc(hlda, docs, original_docs, index=0):
+
+    node = hlda.document_leaves[index]
+    path = []
+    while node is not None:
+        path.append(node)
+        node = node.parent
+    path.reverse()
+
+    n_words = 10
+    with_weights = False
+    indent = 0
+    for n in range(len(path)):
+        node = path[n]
+        msg = '    ' * indent
+        msg += 'topic=%d level=%d (documents=%d): ' % (node.node_id, node.level, node.customers)
+        msg += node.get_top_words(n_words, with_weights)
+        print(msg)
+        indent += 1
+
+    doc = original_docs[index]
+    for speaker, remark in doc:
+        print(speaker + '　' + remark)
+
+
 def get_docs_topic(hlda, docs, level=1):
     res = {}
     for i in range(len(docs)):
@@ -46,7 +71,7 @@ def load_data_for_segmentation(doc_num, *, ans=False):
     return utils.load_data_segment(path)
 
 
-def lexrank(topic, level, node, original_docs, dir='./result/summary/hlda/'):
+def lexrank(topic, level, node, original_docs):
     n_words = 10
     with_weights = False
     docs = []
@@ -66,6 +91,7 @@ def lexrank(topic, level, node, original_docs, dir='./result/summary/hlda/'):
     indexes = summarize(docs, sent_vecs, sort_type='normal', sent_limit=5, threshold=0.1)
     docs_summary = [original_docs[i] for i in indexes]
 
+    dir = './result/summary/hlda/' + model_name
     path = []
     node_parent = node.parent
     while node_parent is not None:
@@ -89,10 +115,10 @@ def lexrank(topic, level, node, original_docs, dir='./result/summary/hlda/'):
             msg += node_child.get_top_words(n_words, with_weights)
             print(msg, file=f)
         print('-------------------------------', file=f)
-        for i, docs in enumerate(docs_summary):
+        for i, doc in enumerate(docs_summary):
             print('', file=f)
             print(str(i+1) + ':', file=f)
-            for speaker, remark in docs:
+            for speaker, remark in doc:
                 print(speaker + '　' + remark, file=f)
 
 
@@ -187,15 +213,6 @@ if __name__ == '__main__':
 
     hlda = load_zipped_pickle('./model/hlda/' + model_name + '.p')
 
-    level = 1
-    res = get_docs_topic(hlda, original_docs, level=level)
-    print(res.keys())
-
-    docs_for_tfidf = []
-
-    dir = './result/summary/hlda/'
-    if ans:
-        dir += 'ans/'
-    # for topic
-    for key, ele in res.items():
-        lexrank(key, level, ele['node'], ele['docs'], dir=dir+model_name)
+    # show_doc(hlda, docs, original_docs, index=193)
+    # show_doc(hlda, docs, original_docs, index=271)
+    show_doc(hlda, docs, original_docs, index=202)
