@@ -33,11 +33,26 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
             # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞"  and info_elems[0][-2:] != u"動詞":
             # if info_elems[0][-2:] != u"名詞" and info_elems[0][-3:] != u"形容詞":
                 continue
-            if info_elems[1] == u"形容動詞語幹" or info_elems[1] == u"副詞可能":
+            if info_elems[1] == u"形容動詞語幹" or info_elems[1] == u"副詞可能" or info_elems[1] == u"数" or info_elems[1] == u"非自立" or info_elems[1] == u"接尾":
+                continue
+            if info_elems[0][-3:] == u"助動詞":
                 continue
 
-            if info_elems[0][-3:] == u"助動詞" or info_elems[1] == u"数" or info_elems[1] == u"非自立":
-                continue
+            if info_elems[6] == u"ちょう":
+                if i + 1 < len(info_of_words):
+                    if info_of_words[i+1].split(',')[6] == u"ちん":
+                        words.append(u"ちょうちん")
+                        continue
+            if info_elems[6] == u"まち":
+                if i + 1 < len(info_of_words) and info_of_words[i+1] != 'EOS':
+                    if info_of_words[i+1].split(',')[6] == u"づくり":
+                        words.append(u"まちづくり")
+                        continue
+            if info_elems[6] == u"もの":
+                if i + 1 < len(info_of_words) and info_of_words[i+1] != 'EOS':
+                    if info_of_words[i+1].split(',')[6] == u"づくり":
+                        words.append(u"ものづくり")
+                        continue
             if info_elems[6] == u"商店":
                 if i + 1 < len(info_of_words):
                     if info_of_words[i+1].split(',')[6] == u"街":
@@ -48,6 +63,11 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
                     if info_of_words[i+1].split(',')[6] == u"ウィーン":
                         words.append(u"ハロウィーン")
                         continue
+            if info_elems[6] == u"高低":
+                if i + 1 < len(info_of_words):
+                    if info_of_words[i+1].split(',')[6] == u"差":
+                        words.append(u"高低差")
+                        continue
             if info_elems[6] == u"You":
                 if i + 1 < len(info_of_words):
                     if info_of_words[i+1].split(',')[6] == u"Tube":
@@ -57,15 +77,26 @@ def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
             # if info_elems[0][-2:] == u"動詞":
             #     print(info_elems)
             #     continue
+
+            if info_elems[6] == u"街":
+                if i - 1 >= 0:
+                    if info_of_words[i-1].split(',')[6] == u"商店":
+                        continue
+                    else:
+                        words.append(u"まち")
+                        continue
+            if info_elems[6] == u"町":
+                words.append(u"まち")
+                continue
+            if info_elems[6] == u"まつり":
+                words.append(u"祭り")
+                continue
             if info_elems[6] in sw:
                 continue
             if info_elems[6] == '*':
                 if info_elems[0][:-3] in sw:
                     continue
 
-            # if info_elems[6] == u"一番":
-            #     print(info_elems)
-            #     continue
 
         # 6番目に、無活用系の単語が入る。もし6番目が'*'だったら0番目を入れる
         if info_elems[6] == '*':

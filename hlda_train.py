@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     doc_type = args[1]
 
-    doc_num = '05'
+    doc_num = 'all'
     ans = False
 
     if doc_type == 'segmentation' or doc_type == 'segmentation/ans':
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     n_samples = 500       # no of iterations for the sampler
     alpha = 1.0          # smoothing over level distributions
     gamma = 1.0           # CRP smoothing parameter; number of imaginary customers at next, as yet unused table
-    eta = 0.005             # smoothing over topic-word distributions
+    eta = 1.0             # smoothing over topic-word distributions
     num_levels = 4        # the number of levels in the tree
     display_topics = 100   # the number of iterations between printing a brief summary of the topics so far
     n_words = 15         # the number of most probable words to print for each topic after model estimation

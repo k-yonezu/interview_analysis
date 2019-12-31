@@ -11,14 +11,14 @@ import re
 import numpy as np
 from tqdm import tqdm
 import random
-random.seed(11)
+random.seed(2)
 
 
 def load_data_for_segmentation(doc_num):
     print('Interview:',  doc_num)
-    path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
+    # path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
     # ans
-    # path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
+    path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_segment(path)
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     # Params
     no_below = 3
-    no_above = 0.5
+    no_above = 0.8
     keep_n = 100000
     sw = stopwords()
     data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
     # Metrics for Topic Models
     start = 2
-    limit = 20
+    limit = 30
     step = 1
 
     coherence_vals = []
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     for n_topic in tqdm(range(start, limit, step)):
         # LDAモデルの構築
-        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=dictionary, num_topics=n_topic, random_state=0, iterations=300)
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=dictionary, num_topics=n_topic, random_state=1, iterations=1000)
         perplexity_vals.append(np.exp2(-lda_model.log_perplexity(test_corpus)))
         coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=train_set, dictionary=dictionary, coherence='u_mass')
         coherence_vals.append(coherence_model_lda.get_coherence())

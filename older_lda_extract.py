@@ -38,7 +38,7 @@ def write_topic_probs(original_docs, prob_arr, topic_N, dir='./result/lda/extrac
             print(sorted_probs[:5])
             # print(docs[sorted_probs[0][0]])
             i = 0
-            for docs in [original_docs[index] for index, prob in sorted_probs[:10]]:
+            for docs in [original_docs[i] for i, prob in sorted_probs[:10]]:
                 i += 1
                 print("-"*80, file=f)
                 print(str(i) + ':', file=f)
@@ -52,11 +52,15 @@ if __name__ == '__main__':
         if not(args[1] == 'sentence' or args[1] == 'segmentation' or args[1] == 'utterance' or args[1] == 'segmentation/ans'):
             print('Argument is invalid')
             exit()
+        if not(args[1] == 'segmentation' or args[1] == 'segmentation/ans'):
+            print('Argument is invalid')
+            exit()
     else:
         print('Arguments are too sort')
         exit()
 
-    doc_type = args[1]
+    model_doc_type = args[1]
+    doc_type = args[2]
 
     doc_num = 'all'
     ans = False
@@ -99,9 +103,9 @@ if __name__ == '__main__':
 
     # Params
     no_below = 3
-    no_above = 0.8
+    no_above = 0.5
     keep_n = 100000
-    topic_N = 9
+    topic_N = 5
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
@@ -109,16 +113,17 @@ if __name__ == '__main__':
     dictionary = gensim.corpora.Dictionary(docs_for_training)
     dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
     # Load
+    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
 
     # Load lda
     model_name = 'doc_num_' + doc_num + '_topic_' + str(topic_N)
-    lda = gensim.models.ldamodel.LdaModel.load('./model/lda/' + doc_type + '/' + model_name + '.model')
+    lda = gensim.models.ldamodel.LdaModel.load('./model/lda/' + model_doc_type + '/' + model_name + '.model')
 
     # Calc
     prob_arr = [lda[doc] for doc in corpus]
     print(prob_arr[:5])
-    dir = './result/lda/extracted/' + doc_type + '/' + model_name
+    dir = './result/lda/extracted/model_doc_type_' + model_doc_type + '/' + 'doc_type_' + doc_type + '/' + model_name
     write_topic_probs(original_docs, prob_arr, topic_N, dir=dir)
     print(prob_arr[720])

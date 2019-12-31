@@ -43,7 +43,7 @@ def validate_args(args):
 def load_model(model_type, segmentation_type, docs):
     if model_type == 'tfidf':
         # TFIDFモデル
-        model = TfidfModel(no_below=1, no_above=1.0, keep_n=100000)
+        model = TfidfModel(no_below=2, no_above=1.0, keep_n=100000)
         model.train(docs)
     elif model_type == 'doc2vec':
         model = Doc2Vec(alpha=0.025, min_count=10, vector_size=300, epochs=50, workers=4)
@@ -62,7 +62,7 @@ def load_model(model_type, segmentation_type, docs):
     if segmentation_type == 'text_tiling':
         segmentation_model = TextTiling(window_size=window_size, p_limit=0.1, a=0.5, model=model)
     elif segmentation_type == 'lcseg':
-        segmentation_model = LexicalCohesionSegmentation(window_size=window_size, hiatus=11, p_limit=0.1, a=0.5, model=model)
+        segmentation_model = LexicalCohesionSegmentation(window_size=window_size, hiatus=11, p_limit=0.1, a=1.0, model=model)
     else:
         print('Invalid segment type')
         exit()

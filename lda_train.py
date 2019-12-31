@@ -80,9 +80,9 @@ if __name__ == '__main__':
 
     # Params
     no_below = 3
-    no_above = 0.5
+    no_above = 0.8
     keep_n = 100000
-    topic_N = 5
+    topic_N = 9
     sw = stopwords()
     docs_for_training = [stems(doc, polish=True, sw=sw) for doc in docs]
 
@@ -101,18 +101,17 @@ if __name__ == '__main__':
     # Load
     # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     # corpus = list(map(dictionary.doc2bow, docs_for_training))
-
     print(docs[-3:])
-    # print([stems(doc, polish=True, sw=sw) for doc in docs][0])
 
     # LDAモデルの構築
-    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=topic_N, id2word=dictionary, random_state=0, iterations=300)
+    lda = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=topic_N, id2word=dictionary, random_state=1, iterations=1000)
 
     # モデルのsave
-    lda.save('./model/lda/' + doc_type + '/' + 'topic_' + str(topic_N) + '.model')
+    model_name = 'doc_num_' + doc_num + '_topic_' + str(topic_N)
+    lda.save('./model/lda/' + doc_type + '/' + model_name + '.model')
 
-    save_path = './result/clustering/lda/' + doc_type + '/'
-    with open(save_path + 'doc_num_' + doc_num + '_topic_' + str(topic_N) + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
+    save_path = './result/lda/' + doc_type + '/'
+    with open(save_path + model_name + '_' + str(datetime.date.today()) + '.txt', 'w') as f:
         for i in range(topic_N):
             print("\n", file=f)
             print("="*80, file=f)
@@ -127,7 +126,7 @@ if __name__ == '__main__':
     vis_mds = pyLDAvis.gensim.prepare(lda, corpus, dictionary, mds=mds_type, sort_topics=False)
 
     # save as html
-    pyLDAvis.save_html(vis_mds, save_path + mds_type  + '_doc_num_' + doc_num + '_topic_' + str(topic_N) + '.html')
+    pyLDAvis.save_html(vis_mds, save_path + mds_type  + '_' + model_name + '.html')
 
     # for topic in lda.show_topics(-1, num_words=20):
     #     print(topic)
