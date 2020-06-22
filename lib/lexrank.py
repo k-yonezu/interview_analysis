@@ -1,10 +1,10 @@
-import numpy as np
 import networkx
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
 
 class LexRank(object):
-    def __init__(self, sent_vecs, *, alpha=0.85, max_iter=100000, threshold=0):
+    def __init__(self, sent_vecs, *, alpha=0.85, max_iter=100000, threshold=0.1):
         self.sent_vecs = np.array(sent_vecs)
         self.alpha = alpha
         self.max_iter=max_iter

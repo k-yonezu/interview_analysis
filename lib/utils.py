@@ -1,8 +1,9 @@
+import os
+import re
+import urllib
+
 import MeCab
 from gensim import models
-import re
-import os
-import urllib
 
 
 def _split_to_words(text, *, to_stem=False, polish=False, sw=[]):
@@ -230,6 +231,19 @@ def to_sentence(data):
         sent_arr = doc.split('\n')
         sent_arr.pop()
         tmp = [(label, sent) for sent in sent_arr if sent.strip() != '']
+        res.extend(tmp)
+
+    return res
+
+
+def to_sentence_docs(docs):
+    res = []
+    sent_arr = []
+    for doc in docs:
+        tmp = []
+        sent_arr = doc.split('\n')
+        sent_arr.pop()
+        tmp = [sent for sent in sent_arr if sent.strip() != '']
         res.extend(tmp)
 
     return res

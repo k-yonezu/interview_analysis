@@ -1,30 +1,30 @@
-from lib.tfidf import TfidfModel
-from lib.utils import stems
-from lib.utils import stopwords
-from lib import utils
-import gensim
-from pprint import pprint
-import matplotlib.pyplot as plt
-import datetime
+import random
 import sys
-import re
+from pprint import pprint
+
+import gensim
+import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-import random
-random.seed(2)
+
+from lib import utils
+from lib.tfidf import TfidfModel
+from lib.utils import stems, stopwords
+
+random.seed(13)
 
 
 def load_data_for_segmentation(doc_num):
-    print('Interview:',  doc_num)
-    # path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
+    print('Interview:', doc_num)
+    path = './data/segmentation/sentence/interview-text_' + doc_num + '.txt'
     # ans
-    path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
+    # path = './data/eval/interview-text_sentence_' + doc_num + '.txt'
 
     return utils.load_data_segment(path)
 
 
 def load_data_per_interview(doc_num):
-    print('Interview:',  doc_num)
+    print('Interview:', doc_num)
     path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
 
     return utils.load_data(path)
@@ -32,15 +32,19 @@ def load_data_per_interview(doc_num):
 
 if __name__ == '__main__':
     args = sys.argv
-    if 2 <= len(args):
-        if not(args[1] == 'sentence' or args[1] == 'segmentation' or args[1] == 'utterance' or args[1] == 'interview'):
+    if len(args) >= 2:
+        if not (args[1] == 'sentence' or args[1] == 'segmentation' or args[1] == 'utterance' or args[1] == 'interview'):
             print('Argument is invalid')
-            exit()
+            sys.exit()
+        if not (args[2] == 'perplexity' or args[2] == 'coherence'):
+            print('Argument is invalid')
+            sys.exit()
     else:
         print('Arguments are too sort')
-        exit()
+        sys.exit()
 
     doc_type = args[1]
+    eval_type = args[2]
 
     doc_num = 'all'
     path = './data/interview/interview-text_01-26_' + doc_num + '.txt'
@@ -106,9 +110,62 @@ if __name__ == '__main__':
     no_below = 3
     no_above = 0.8
     keep_n = 100000
+    # Metrics for Topic Models
+    start = 2
+    limit = 51
+    step = 1
+
     sw = stopwords()
-    data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
-    docs_for_dict = data_set
+    # data_set = [stems(doc, polish=True, sw=sw) for doc in docs]
+    # docs_for_dict = data_set
+
+    print('===コーパス生成===')
+    if eval_type == 'perplexity':
+        # Test set
+        print(docs[:3])
+        random.shuffle(docs)
+        print(docs[:3])
+        test_size = int(len(docs) * 0.25)
+        docs_test = docs[:test_size]
+        # docs_test = docs
+        test_set = [stems(doc, polish=True, sw=sw) for doc in docs_test]
+        # dict
+        # data_for_test_dict = [stems(doc, polish=True, sw=sw) for doc in utils.to_sentence_docs(docs_test)]
+        data_for_test_dict = test_set
+        test_dict = gensim.corpora.Dictionary(data_for_test_dict)
+        test_dict.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+        test_corpus = list(map(test_dict.doc2bow, test_set))
+
+        # Train set
+        docs_train = docs[test_size:]
+        # docs_train = docs
+        train_set = [stems(doc, polish=True, sw=sw) for doc in docs_train]
+        # dict
+        # data_for_train_dict = [stems(doc, polish=True, sw=sw) for doc in utils.to_sentence_docs(docs_train)]
+        data_for_train_dict = train_set
+        train_dict = gensim.corpora.Dictionary(data_for_train_dict)
+        train_dict.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+        train_corpus = list(map(train_dict.doc2bow, train_set))
+
+        perplexity_vals = []
+    elif eval_type == 'coherence':
+        # Train set
+        docs_train = docs
+        train_set = [stems(doc, polish=True, sw=sw) for doc in docs_train]
+        # dict
+        # data_for_train_dict = [stems(doc, polish=True, sw=sw) for doc in utils.to_sentence_docs(docs_train)]
+        docs_for_train_dict = train_set
+        train_dict = gensim.corpora.Dictionary(docs_for_train_dict)
+        train_dict.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+        train_corpus = list(map(train_dict.doc2bow, train_set))
+
+        # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
+        # tfidf.train(train_set)
+        # train_dict = tfidf.dictionary
+        # train_corpus = tfidf.corpus
+        # train_corpus = tfidf.model[train_corpus]
+
+        coherence_vals = []
 
     # for doc1
     # sentence corpus
@@ -117,75 +174,31 @@ if __name__ == '__main__':
     # docs_for_dict = [row[1] for row in data_for_dict]
     # docs_for_dict = [stems(doc, polish=True, sw=sw) for doc in docs_for_dict]
 
-    print('===コーパス生成===')
-    # dict
-    dictionary = gensim.corpora.Dictionary(docs_for_dict)
-    dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    # for sentence
-    # Load
-    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    corpus = list(map(dictionary.doc2bow, data_set))
-
-    print(data_set[:3])
-    random.shuffle(data_set)
-    print(data_set[:3])
-    test_size = int(len(data_set) * 0.2)
-    test_set = data_set[:test_size]
-    train_set = data_set[test_size:]
-    # train_set = data_set
-    # test_set = data_set
-
-    test_corpus = list(map(dictionary.doc2bow, test_set))
-    train_corpus = list(map(dictionary.doc2bow, train_set))
-
-    # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    # tfidf.train(train_set)
-    # train_dict = tfidf.dictionary
-    # train_corpus = tfidf.corpus
-    # corpus = tfidf.model[corpus]
-
-    # tfidf = TfidfModel(no_below=no_below, no_above=no_above, keep_n=keep_n)
-    # tfidf.train(test_set)
-    # test_dict = tfidf.dictionary
-    # test_corpus = tfidf.corpus
-
-    # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
-    # corpus = list(map(dictionary.doc2bow, docs_for_training))
     print(docs[-3:])
-
-    # Metrics for Topic Models
-    start = 2
-    limit = 30
-    step = 1
-
-    coherence_vals = []
-    perplexity_vals = []
 
     for n_topic in tqdm(range(start, limit, step)):
         # LDAモデルの構築
-        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=dictionary, num_topics=n_topic, random_state=1, iterations=1000)
-        perplexity_vals.append(np.exp2(-lda_model.log_perplexity(test_corpus)))
-        coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=train_set, dictionary=dictionary, coherence='u_mass')
-        coherence_vals.append(coherence_model_lda.get_coherence())
+        lda_model = gensim.models.ldamodel.LdaModel(corpus=train_corpus, id2word=train_dict, num_topics=n_topic, random_state=1, iterations=1000)
+        # lda_model = gensim.models.ldamulticore.LdaMulticore(corpus=train_corpus, id2word=train_dict, num_topics=n_topic, ranom_state=1, iterations=1000, workers=-1)
+        if eval_type == 'perplexity':
+            perplexity_vals.append(np.exp2(-lda_model.log_perplexity(test_corpus)))
+        elif eval_type == 'coherence':
+            coherence_model_lda = gensim.models.CoherenceModel(model=lda_model, texts=train_set, dictionary=train_dict, coherence='u_mass')
+            coherence_vals.append(coherence_model_lda.get_coherence())
 
     # evaluation
     x = range(start, limit, step)
 
-    fig, ax1 = plt.subplots(figsize=(12,5))
-
-    # coherence
-    c1 = 'darkturquoise'
-    ax1.plot(x, coherence_vals, 'o-', color=c1)
-    ax1.set_xlabel('Num Topics')
-    ax1.set_ylabel('Coherence', color=c1); ax1.tick_params('y', colors=c1)
-
+    color = 'black'
+    fig = plt.figure(figsize=(12, 5))
+    plt.xlabel('Number of Topics')
+    plt.xticks(x)
     # perplexity
-    c2 = 'slategray'
-    ax2 = ax1.twinx()
-    ax2.plot(x, perplexity_vals, 'o-', color=c2)
-    ax2.set_ylabel('Perplexity', color=c2); ax2.tick_params('y', colors=c2)
-
-    # Vis
-    ax1.set_xticks(x)
-    fig.tight_layout()
+    if eval_type == 'perplexity':
+        plt.ylabel('Perplexity')
+        plt.plot(x, perplexity_vals, 'o-', color=color)
+    # coherence
+    elif eval_type == 'coherence':
+        plt.ylabel('Coherence')
+        plt.plot(x, coherence_vals, 'o-', color=color)
     plt.show()

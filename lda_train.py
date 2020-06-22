@@ -1,15 +1,16 @@
 # 自作のデータ読み込み&前処理用ライブラリ
-from lib.tfidf import TfidfModel
-from lib.utils import stems
-from lib.utils import stopwords
-from lib import utils
-import gensim
-from pprint import pprint
 import datetime
-import sys
 import re
+import sys
+from pprint import pprint
+
+import gensim
+
 import pyLDAvis
 import pyLDAvis.gensim
+from lib import utils
+from lib.tfidf import TfidfModel
+from lib.utils import stems, stopwords
 
 
 def load_data_for_segmentation(doc_num, *, ans=False):
@@ -98,6 +99,18 @@ if __name__ == '__main__':
     dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
     corpus = list(map(dictionary.doc2bow, docs_for_training))
 
+    # 単語数と語彙数
+    # print(len(dictionary))
+    # print(len(dictionary.token2id))
+    # count = 0
+    # for arr in corpus:
+    #     for w in arr:
+    #         count += w[1]
+
+    # print(count)
+    # print(len(corpus))
+    # exit()
+
     # Load
     # dictionary = gensim.corpora.Dictionary.load_from_text('./model/tfidf/dict_' + str(no_below) + '_' + str(int(no_above * 100)) + '_' + str(keep_n) + '.dict')
     # corpus = list(map(dictionary.doc2bow, docs_for_training))
@@ -122,7 +135,8 @@ if __name__ == '__main__':
 
     # 可視化
     # Vis Metric MDS
-    mds_type = 'mmds'
+    mds_type = 'pcoa'
+    # vis_mds = pyLDAvis.gensim.prepare(lda, corpus, dictionary, sort_topics=False)
     vis_mds = pyLDAvis.gensim.prepare(lda, corpus, dictionary, mds=mds_type, sort_topics=False)
 
     # save as html
